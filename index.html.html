@@ -4,7 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FlowForge — AI Data Integration</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root {
     --ink: #0a0a0f;
@@ -22,8 +24,8 @@
     --glow: rgba(67,56,245,0.12);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'DM Sans', sans-serif; color: var(--ink); background: var(--bg); line-height: 1.6; }
-  h1,h2,h3,h4,.brand { font-family: 'Syne', sans-serif; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; color: var(--ink); background: var(--bg); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  h1,h2,h3,h4,.brand { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; }
 
   /* NAV */
   nav {
@@ -38,12 +40,14 @@
   .nav-links { display: flex; gap: 2rem; align-items: center; }
   .nav-links a { font-size: 0.875rem; font-weight: 500; color: var(--ink2); text-decoration: none; transition: color .2s; }
   .nav-links a:hover { color: var(--accent); }
-  .nav-cta { background: var(--accent); color: #fff; padding: 0.5rem 1.25rem; border-radius: 8px; font-size: 0.875rem; font-weight: 500; text-decoration: none; transition: background .2s; font-family: 'DM Sans', sans-serif; }
+  .nav-cta { background: var(--accent); color: #fff; padding: 0.5rem 1.25rem; border-radius: 8px; font-size: 0.875rem; font-weight: 500; text-decoration: none; transition: background .2s; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; }
   .nav-cta:hover { background: #3730e0; color: #fff; }
 
   /* SECTIONS */
   section { padding: 5rem 2.5rem; }
-  .container { max-width: 1100px; margin: 0 auto; }
+  .container { max-width: 1080px; margin: 0 auto; }
+  p, li { max-width: 68ch; }
+  .hero-sub, .section-sub { max-width: 52ch; }
 
   /* HERO */
   #hero {
@@ -55,42 +59,42 @@
     display: inline-flex; align-items: center; gap: 6px;
     background: rgba(67,56,245,0.08); color: var(--accent);
     font-size: 0.8rem; font-weight: 500; padding: 4px 12px; border-radius: 20px;
-    border: 1px solid rgba(67,56,245,0.2); margin-bottom: 1.5rem; font-family: 'DM Sans',sans-serif;
+    border: 1px solid rgba(67,56,245,0.2); margin-bottom: 1.5rem; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   }
   .hero-badge::before { content: '●'; font-size: 8px; }
   h1.hero-title {
-    font-size: clamp(2.8rem, 6vw, 5rem); font-weight: 800; line-height: 1.0;
-    letter-spacing: -2px; color: var(--ink); margin-bottom: 1.5rem;
+    font-size: clamp(2.4rem, 4.5vw, 4rem); font-weight: 800; line-height: 1.08;
+    letter-spacing: -1.5px; color: var(--ink); margin-bottom: 1.5rem;
   }
   h1.hero-title em { font-style: normal; color: var(--accent); }
   .hero-sub { font-size: 1.15rem; color: var(--ink2); max-width: 540px; margin-bottom: 2.5rem; font-weight: 300; }
   .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 3rem; }
-  .btn-primary { background: var(--accent); color: #fff; padding: 0.85rem 2rem; border-radius: 10px; font-size: 1rem; font-weight: 500; text-decoration: none; transition: all .2s; display: inline-flex; align-items: center; gap: 8px; font-family: 'DM Sans',sans-serif; border: none; cursor: pointer; }
+  .btn-primary { background: var(--accent); color: #fff; padding: 0.85rem 2rem; border-radius: 10px; font-size: 1rem; font-weight: 500; text-decoration: none; transition: all .2s; display: inline-flex; align-items: center; gap: 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; border: none; cursor: pointer; }
   .btn-primary:hover { background: #3730e0; transform: translateY(-1px); }
-  .btn-secondary { background: transparent; color: var(--ink); padding: 0.85rem 2rem; border-radius: 10px; font-size: 1rem; font-weight: 500; text-decoration: none; transition: all .2s; border: 1px solid var(--wire); display: inline-flex; align-items: center; gap: 8px; font-family: 'DM Sans',sans-serif; cursor: pointer; }
+  .btn-secondary { background: transparent; color: var(--ink); padding: 0.85rem 2rem; border-radius: 10px; font-size: 1rem; font-weight: 500; text-decoration: none; transition: all .2s; border: 1px solid var(--wire); display: inline-flex; align-items: center; gap: 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; cursor: pointer; }
   .btn-secondary:hover { background: var(--surface); }
   .hero-stats { display: flex; gap: 2.5rem; }
   .stat { }
-  .stat-num { font-family: 'Syne',sans-serif; font-size: 1.75rem; font-weight: 800; color: var(--ink); }
+  .stat-num { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; font-size: 1.75rem; font-weight: 800; color: var(--ink); }
   .stat-label { font-size: 0.8rem; color: var(--ink3); }
 
   /* LOGOS */
   #logos { padding: 2.5rem 2.5rem; background: var(--surface); border-top: 1px solid var(--wire); border-bottom: 1px solid var(--wire); }
   .logos-label { text-align: center; font-size: 0.8rem; font-weight: 500; color: var(--ink3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1.5rem; }
   .logos-row { display: flex; gap: 3rem; justify-content: center; align-items: center; flex-wrap: wrap; }
-  .logo-chip { font-family: 'Syne',sans-serif; font-weight: 700; font-size: 1.1rem; color: var(--ink3); opacity: 0.6; }
+  .logo-chip { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; font-weight: 700; font-size: 1.1rem; color: var(--ink3); opacity: 0.6; }
 
   /* HOW IT WORKS */
   #how { background: var(--bg); }
-  .section-label { font-size: 0.8rem; font-weight: 500; color: var(--accent); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 0.75rem; font-family: 'DM Sans',sans-serif; }
-  h2.section-title { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; letter-spacing: -1px; color: var(--ink); margin-bottom: 1rem; }
+  .section-label { font-size: 0.8rem; font-weight: 500; color: var(--accent); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 0.75rem; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; }
+  h2.section-title { font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 800; letter-spacing: -0.75px; color: var(--ink); margin-bottom: 1rem; }
   .section-sub { font-size: 1.05rem; color: var(--ink2); max-width: 540px; font-weight: 300; margin-bottom: 3rem; }
   .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 3rem; }
   .step-card {
     background: var(--surface); border: 1px solid var(--wire); border-radius: 16px;
     padding: 1.75rem; position: relative; overflow: hidden;
   }
-  .step-card::before { content: attr(data-num); position: absolute; top: 1rem; right: 1.25rem; font-family: 'Syne',sans-serif; font-size: 4rem; font-weight: 800; color: var(--wire); line-height: 1; }
+  .step-card::before { content: attr(data-num); position: absolute; top: 1rem; right: 1.25rem; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; font-size: 4rem; font-weight: 800; color: var(--wire); line-height: 1; }
   .step-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--glow); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; font-size: 1.2rem; }
   .step-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem; }
   .step-card p { font-size: 0.9rem; color: var(--ink2); line-height: 1.6; }
@@ -109,15 +113,15 @@
   .dot-r { background: #ff5f57; }
   .dot-y { background: #febc2e; }
   .dot-g { background: #28c840; }
-  .tool-topbar-title { font-size: 0.8rem; color: rgba(255,255,255,0.5); margin-left: auto; margin-right: auto; font-family: 'DM Sans',sans-serif; }
+  .tool-topbar-title { font-size: 0.8rem; color: rgba(255,255,255,0.5); margin-left: auto; margin-right: auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; }
   .tool-body { display: grid; grid-template-columns: 1fr 1fr; min-height: 620px; }
   .tool-left { padding: 2rem; border-right: 1px solid var(--wire); display: flex; flex-direction: column; gap: 1.25rem; }
   .tool-right { padding: 2rem; display: flex; flex-direction: column; gap: 1rem; overflow-y: auto; max-height: 620px; }
-  .tool-section-head { font-size: 0.75rem; font-weight: 600; color: var(--ink3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem; font-family: 'DM Sans',sans-serif; }
+  .tool-section-head { font-size: 0.75rem; font-weight: 600; color: var(--ink3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; }
   
   .business-textarea {
     width: 100%; min-height: 160px; padding: 1rem; border: 1px solid var(--wire);
-    border-radius: 12px; font-family: 'DM Sans',sans-serif; font-size: 0.9rem; color: var(--ink);
+    border-radius: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; font-size: 0.9rem; color: var(--ink);
     resize: vertical; background: var(--surface); transition: border-color .2s;
     line-height: 1.6;
   }
@@ -136,7 +140,7 @@
   .generate-btn {
     width: 100%; padding: 0.9rem; background: var(--accent); color: #fff;
     border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 600;
-    cursor: pointer; font-family: 'Syne',sans-serif; letter-spacing: 0.3px;
+    cursor: pointer; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; letter-spacing: 0.3px;
     transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 8px;
   }
   .generate-btn:hover { background: #3730e0; transform: translateY(-1px); }
@@ -159,7 +163,7 @@
   .pipeline-card-head h4 { font-size: 0.85rem; font-weight: 700; }
   .badge {
     font-size: 0.72rem; font-weight: 600; padding: 2px 8px; border-radius: 20px;
-    font-family: 'DM Sans',sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   }
   .badge-green { background: rgba(5,150,105,0.1); color: var(--green); }
   .badge-amber { background: rgba(217,119,6,0.1); color: var(--amber); }
@@ -214,10 +218,10 @@
   .featured-badge {
     position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
     background: var(--accent); color: #fff; font-size: 0.72rem; font-weight: 700;
-    padding: 4px 14px; border-radius: 20px; font-family: 'DM Sans',sans-serif; white-space: nowrap;
+    padding: 4px 14px; border-radius: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; white-space: nowrap;
   }
   .plan-name { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--ink3); margin-bottom: 0.75rem; }
-  .plan-price { font-family: 'Syne',sans-serif; font-size: 2.5rem; font-weight: 800; color: var(--ink); line-height: 1; margin-bottom: 0.25rem; }
+  .plan-price { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; font-size: 2.5rem; font-weight: 800; color: var(--ink); line-height: 1; margin-bottom: 0.25rem; }
   .plan-price span { font-size: 1rem; font-weight: 400; color: var(--ink3); }
   .plan-desc { font-size: 0.85rem; color: var(--ink2); margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--wire); }
   .plan-features { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; flex: 1; margin-bottom: 1.5rem; }
@@ -227,7 +231,7 @@
   .plan-features li.muted { color: var(--ink3); }
   .plan-btn {
     width: 100%; padding: 0.75rem; border-radius: 10px; font-size: 0.9rem; font-weight: 600;
-    cursor: pointer; font-family: 'Syne',sans-serif; transition: all .2s; border: none;
+    cursor: pointer; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; transition: all .2s; border: none;
   }
   .plan-btn-primary { background: var(--accent); color: #fff; }
   .plan-btn-primary:hover { background: #3730e0; }
@@ -254,7 +258,7 @@
   .form-label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--ink2); margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.5px; }
   .form-input {
     width: 100%; padding: 0.65rem 0.9rem; border: 1px solid var(--wire); border-radius: 8px;
-    font-family: 'DM Sans',sans-serif; font-size: 0.9rem; color: var(--ink); background: var(--surface);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; font-size: 0.9rem; color: var(--ink); background: var(--surface);
     transition: border-color .2s;
   }
   .form-input:focus { outline: none; border-color: var(--accent); background: #fff; }
@@ -265,7 +269,7 @@
   .submit-btn {
     width: 100%; padding: 0.9rem; background: var(--accent); color: #fff; border: none;
     border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer;
-    font-family: 'Syne',sans-serif; transition: all .2s; margin-top: 0.5rem;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; transition: all .2s; margin-top: 0.5rem;
   }
   .submit-btn:hover { background: #3730e0; }
   .plan-summary {
@@ -273,12 +277,12 @@
     border: 1px solid var(--wire);
   }
   .plan-summary-name { font-weight: 700; color: var(--ink); margin-bottom: 0.25rem; }
-  .plan-summary-price { font-size: 1.5rem; font-weight: 800; font-family: 'Syne',sans-serif; color: var(--accent); }
+  .plan-summary-price { font-size: 1.5rem; font-weight: 800; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; color: var(--accent); }
 
   /* FOOTER */
   footer { background: var(--ink); color: rgba(255,255,255,0.6); padding: 3rem 2.5rem; font-size: 0.85rem; }
-  .footer-inner { max-width: 1100px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: gap; gap: 1rem; }
-  .footer-brand { font-family: 'Syne',sans-serif; font-size: 1.1rem; font-weight: 800; color: #fff; }
+  .footer-inner { max-width: 1080px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+  .footer-brand { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; font-size: 1.1rem; font-weight: 800; color: #fff; }
 
   /* RESPONSIVE */
   @media (max-width: 768px) {
@@ -784,8 +788,8 @@ function renderOutput(r, sources, outputType) {
     </div>
 
     <div style="display:flex;gap:0.75rem;margin-top:0.5rem">
-      <button onclick="copyOutput()" style="flex:1;padding:0.65rem;border:1px solid var(--wire);border-radius:8px;background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;font-size:0.85rem;cursor:pointer;transition:all .2s" onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background='var(--bg)'">📋 Copy JSON</button>
-      <button onclick="window.location='#pricing'" style="flex:1;padding:0.65rem;border:none;border-radius:8px;background:var(--accent);color:#fff;font-family:'Syne',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;transition:all .2s" onmouseover="this.style.background='#3730e0'" onmouseout="this.style.background='var(--accent)'">Deploy this pipeline →</button>
+      <button onclick="copyOutput()" style="flex:1;padding:0.65rem;border:1px solid var(--wire);border-radius:8px;background:var(--bg);color:var(--ink);font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;font-size:0.85rem;cursor:pointer;transition:all .2s" onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background='var(--bg)'">📋 Copy JSON</button>
+      <button onclick="window.location='#pricing'" style="flex:1;padding:0.65rem;border:none;border-radius:8px;background:var(--accent);color:#fff;font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;transition:all .2s" onmouseover="this.style.background='#3730e0'" onmouseout="this.style.background='var(--accent)'">Deploy this pipeline →</button>
     </div>
   `;
 
