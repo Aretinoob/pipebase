@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Integration Factory — FlowForge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:#0d0d14;--ink2:#3a3a4a;--ink3:#7a7a8a;--ink4:#b0b0bc;
+  --wire:#e4e4ef;--wire2:#f0f0f8;--bg:#fff;--surface:#f8f8fc;--surface2:#f2f2f8;
+  --accent:#4338f5;--accent2:#6366f1;--glow:rgba(67,56,245,0.12);
+  --green:#059669;--green-bg:rgba(5,150,105,0.08);
+  --amber:#d97706;--amber-bg:rgba(217,119,6,0.08);
+  --red:#dc2626;--red-bg:rgba(220,38,38,0.08);
+  --purple:#7c3aed;--purple-bg:rgba(124,58,237,0.08);
+  --blue:#0284c7;--blue-bg:rgba(2,132,199,0.08);
+  --sidebar-w:260px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',-apple-system,system-ui,sans-serif;color:var(--ink);background:var(--surface);line-height:1.6;-webkit-font-smoothing:antialiased;}
+button,input,textarea,select{font-family:inherit;}
+a{text-decoration:none;color:inherit;}
+
+/* LAYOUT */
+.sidebar{background:#0d0d14;color:rgba(255,255,255,0.75);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);z-index:50;overflow-y:auto;}
+.main-area{margin-left:var(--sidebar-w);width:calc(100% - var(--sidebar-w));display:flex;flex-direction:column;min-height:100vh;}
+.topbar{background:var(--bg);border-bottom:1px solid var(--wire);padding:0 2rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40;width:100%;}
+.page-content{flex:1;padding:2rem;min-width:0;}
+
+/* SIDEBAR */
+.sidebar-top{padding:1.25rem 1rem 0.75rem;border-bottom:1px solid rgba(255,255,255,0.06);}
+.sidebar-brand{display:flex;align-items:center;gap:0.6rem;margin-bottom:0.75rem;}
+.sidebar-brand-icon{width:28px;height:28px;background:var(--accent);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0;}
+.sidebar-brand-name{font-size:0.95rem;font-weight:800;color:#fff;letter-spacing:-0.3px;}
+.sidebar-brand-name span{color:#818cf8;}
+.sidebar-nav{flex:1;padding:0.75rem 0;}
+.nav-section{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,0.25);padding:0.75rem 1rem 0.35rem;}
+.nav-item{display:flex;align-items:center;gap:0.6rem;padding:0.5rem 1rem;font-size:0.825rem;font-weight:500;color:rgba(255,255,255,0.55);border:none;background:none;width:100%;text-align:left;cursor:pointer;transition:all .15s;}
+.nav-item:hover{color:rgba(255,255,255,0.85);background:rgba(255,255,255,0.05);}
+.nav-item.active{color:#fff;background:rgba(255,255,255,0.08);border-left:2px solid #818cf8;}
+.nav-item .icon{font-size:0.9rem;width:18px;text-align:center;flex-shrink:0;}
+.sidebar-bottom{padding:0.75rem 1rem;border-top:1px solid rgba(255,255,255,0.06);}
+.sidebar-user{display:flex;align-items:center;gap:0.6rem;}
+.sidebar-avatar{width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;color:#fff;flex-shrink:0;}
+.sidebar-user-name{font-size:0.8rem;font-weight:600;color:rgba(255,255,255,0.8);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sidebar-logout{background:none;border:none;color:rgba(255,255,255,0.3);font-size:0.75rem;cursor:pointer;}
+.sidebar-logout:hover{color:rgba(255,255,255,0.6);}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:0.5rem 1rem;border-radius:8px;font-size:0.825rem;font-weight:600;border:none;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.btn-primary{background:var(--accent);color:#fff;}.btn-primary:hover{background:#3730e0;}
+.btn-secondary{background:var(--surface2);color:var(--ink);border:1px solid var(--wire);}.btn-secondary:hover{background:var(--wire2);}
+.btn-ghost{background:transparent;color:var(--ink2);border:1px solid var(--wire);}.btn-ghost:hover{background:var(--surface);}
+.btn-green{background:var(--green);color:#fff;}.btn-green:hover{background:#047857;}
+.btn-purple{background:var(--purple);color:#fff;}.btn-purple:hover{background:#6d28d9;}
+.btn-sm{padding:0.35rem 0.75rem;font-size:0.775rem;}
+.btn-lg{padding:0.75rem 1.75rem;font-size:0.925rem;}
+.btn:disabled{opacity:0.4;cursor:not-allowed;}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:0.7rem;font-weight:600;padding:2px 8px;border-radius:20px;}
+.badge-blue{background:var(--blue-bg);color:var(--blue);}
+.badge-green{background:var(--green-bg);color:var(--green);}
+.badge-amber{background:var(--amber-bg);color:var(--amber);}
+.badge-red{background:var(--red-bg);color:var(--red);}
+.badge-purple{background:var(--purple-bg);color:var(--purple);}
+.badge-gray{background:var(--surface2);color:var(--ink3);border:1px solid var(--wire);}
+
+/* FORMS */
+.form-group{margin-bottom:1rem;}
+.form-label{display:block;font-size:0.775rem;font-weight:600;color:var(--ink2);margin-bottom:0.35rem;text-transform:uppercase;letter-spacing:0.4px;}
+.form-hint{font-size:0.75rem;color:var(--ink3);margin-top:0.3rem;}
+.form-input{width:100%;padding:0.6rem 0.875rem;border:1px solid var(--wire);border-radius:8px;font-size:0.875rem;color:var(--ink);background:var(--bg);transition:border-color .15s,box-shadow .15s;}
+.form-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--glow);}
+.form-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237a7a8a' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 0.75rem center;padding-right:2rem;cursor:pointer;}
+.form-textarea{min-height:100px;resize:vertical;line-height:1.6;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+
+/* VIEWS */
+.view{display:none;}.view.active{display:block;}
+
+/* PAGE HEADER */
+.page-header{margin-bottom:1.75rem;}
+.page-header h1{font-size:1.4rem;font-weight:800;letter-spacing:-0.5px;margin-bottom:0.35rem;}
+.page-header p{font-size:0.875rem;color:var(--ink3);max-width:60ch;}
+
+/* ══ FACTORY BUILDER ══ */
+.factory-layout{display:grid;grid-template-columns:420px 1fr;gap:1.5rem;min-height:calc(100vh - 160px);}
+.factory-left{display:flex;flex-direction:column;gap:1rem;}
+.factory-right{min-width:0;}
+
+.builder-card{background:var(--bg);border:1px solid var(--wire);border-radius:14px;overflow:hidden;}
+.builder-card-header{padding:0.875rem 1.25rem;border-bottom:1px solid var(--wire);display:flex;align-items:center;justify-content:space-between;background:var(--surface);}
+.builder-card-title{font-size:0.825rem;font-weight:700;display:flex;align-items:center;gap:0.5rem;}
+.builder-card-body{padding:1.25rem;}
+
+/* Tool selector */
+.tool-selector-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:0.5rem;}
+.tool-chip{display:flex;align-items:center;gap:0.5rem;padding:0.55rem 0.75rem;border:1.5px solid var(--wire);border-radius:8px;cursor:pointer;transition:all .15s;background:var(--bg);font-size:0.8rem;font-weight:500;}
+.tool-chip:hover{border-color:var(--accent);background:var(--glow);}
+.tool-chip.selected{border-color:var(--accent);background:var(--glow);color:var(--accent);}
+.tool-chip.unavailable{opacity:0.4;cursor:not-allowed;}
+.tool-chip .tool-emoji{font-size:1rem;width:20px;text-align:center;flex-shrink:0;}
+
+/* Generate button */
+.generate-bar{background:linear-gradient(135deg,#1e1b4b,#312e81);border-radius:12px;padding:1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;}
+.generate-bar-text h3{font-size:0.9rem;font-weight:700;color:#fff;margin-bottom:0.2rem;}
+.generate-bar-text p{font-size:0.78rem;color:rgba(255,255,255,0.6);}
+.generate-bar .btn{background:#818cf8;color:#fff;font-weight:700;}
+.generate-bar .btn:hover{background:#6366f1;}
+
+/* Output area */
+.output-empty{background:var(--bg);border:1px solid var(--wire);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4rem 2rem;text-align:center;min-height:400px;}
+.output-empty-icon{font-size:3rem;margin-bottom:1rem;opacity:0.3;}
+.output-empty h3{font-size:1rem;font-weight:700;margin-bottom:0.5rem;}
+.output-empty p{font-size:0.85rem;color:var(--ink3);max-width:36ch;margin:0 auto;}
+
+/* Tool recommendation */
+.tool-recommendation{background:var(--bg);border:1px solid var(--wire);border-radius:14px;overflow:hidden;margin-bottom:1rem;}
+.tool-rec-header{padding:1rem 1.25rem;border-bottom:1px solid var(--wire);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;}
+.tool-rec-selected{display:flex;align-items:center;gap:0.75rem;}
+.tool-rec-icon{font-size:1.5rem;}
+.tool-rec-name{font-size:1rem;font-weight:800;}
+.tool-rec-why{font-size:0.78rem;color:var(--ink3);margin-top:0.1rem;}
+.tool-rec-body{padding:1rem 1.25rem;}
+.tool-rec-alt{background:var(--amber-bg);border:1px solid rgba(217,119,6,0.2);border-radius:8px;padding:0.75rem 1rem;display:flex;align-items:flex-start;gap:0.75rem;font-size:0.82rem;}
+.tool-rec-alt-icon{font-size:1rem;flex-shrink:0;margin-top:0.1rem;}
+
+/* Code output */
+.code-output{background:var(--bg);border:1px solid var(--wire);border-radius:14px;overflow:hidden;}
+.code-tabs{display:flex;border-bottom:1px solid var(--wire);background:var(--surface);overflow-x:auto;}
+.code-tab{padding:0.65rem 1.1rem;font-size:0.78rem;font-weight:600;color:var(--ink3);cursor:pointer;border:none;background:none;white-space:nowrap;border-bottom:2px solid transparent;transition:all .15s;}
+.code-tab:hover{color:var(--ink);}
+.code-tab.active{color:var(--accent);border-bottom-color:var(--accent);background:var(--bg);}
+.code-panel{display:none;}.code-panel.active{display:block;}
+.code-block{background:#0f172a;padding:1.25rem;font-family:'JetBrains Mono',monospace;font-size:0.78rem;line-height:1.8;overflow-x:auto;color:#e2e8f0;min-height:300px;max-height:500px;overflow-y:auto;}
+.code-block pre{margin:0;white-space:pre;color:#e2e8f0;}
+.code-actions{padding:0.75rem 1.25rem;border-top:1px solid var(--wire);display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;background:var(--surface);}
+
+/* Syntax highlighting */
+.kw{color:#f472b6;}.str{color:#86efac;}.cmt{color:#64748b;font-style:italic;}
+.fn{color:#67e8f9;}.num{color:#fbbf24;}.var{color:#c084fc;}.op{color:#94a3b8;}
+.cls{color:#34d399;}.dec{color:#fb923c;}
+
+/* Deployment guide */
+.deploy-steps{display:flex;flex-direction:column;gap:0.75rem;}
+.deploy-step{background:var(--bg);border:1px solid var(--wire);border-radius:10px;padding:1rem 1.1rem;display:flex;gap:0.875rem;}
+.deploy-step-num{width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0;margin-top:0.1rem;}
+.deploy-step-content h4{font-size:0.85rem;font-weight:700;margin-bottom:0.3rem;}
+.deploy-step-content p{font-size:0.8rem;color:var(--ink2);max-width:none;}
+.deploy-step-code{font-family:'JetBrains Mono',monospace;font-size:0.75rem;background:#0f172a;color:#e2e8f0;padding:0.5rem 0.75rem;border-radius:6px;margin-top:0.5rem;overflow-x:auto;white-space:pre;}
+
+/* Test plan */
+.test-table{width:100%;border-collapse:collapse;font-size:0.8rem;}
+.test-table th{text-align:left;padding:0.5rem 0.875rem;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--ink3);background:var(--surface);border-bottom:1px solid var(--wire);}
+.test-table td{padding:0.6rem 0.875rem;border-bottom:1px solid var(--wire2);vertical-align:top;}
+.test-table tr:last-child td{border-bottom:none;}
+
+/* Performance card */
+.perf-card{background:var(--bg);border:1px solid var(--wire);border-radius:12px;padding:1.25rem;margin-bottom:1rem;}
+.perf-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:0.875rem;}
+.perf-metric{text-align:center;padding:0.75rem;background:var(--surface);border-radius:8px;}
+.perf-metric-val{font-size:1.25rem;font-weight:800;color:var(--ink);}
+.perf-metric-label{font-size:0.7rem;color:var(--ink3);margin-top:0.2rem;}
+
+/* Pipeline registry */
+.registry-list{display:flex;flex-direction:column;gap:0.75rem;}
+.registry-item{background:var(--bg);border:1px solid var(--wire);border-radius:12px;padding:1rem 1.25rem;display:flex;align-items:center;gap:1rem;transition:all .2s;cursor:pointer;}
+.registry-item:hover{border-color:var(--accent);box-shadow:0 4px 16px var(--glow);}
+.registry-tool-icon{font-size:1.5rem;flex-shrink:0;}
+.registry-info{flex:1;min-width:0;}
+.registry-name{font-size:0.9rem;font-weight:700;margin-bottom:0.2rem;}
+.registry-meta{font-size:0.78rem;color:var(--ink3);display:flex;gap:0.75rem;flex-wrap:wrap;}
+.registry-actions{display:flex;gap:0.5rem;flex-shrink:0;}
+
+/* Loading */
+.loading-overlay{background:var(--bg);border:1px solid var(--wire);border-radius:14px;padding:2.5rem;text-align:center;}
+.loading-steps{display:flex;flex-direction:column;gap:0.6rem;max-width:420px;margin:1.5rem auto 0;text-align:left;}
+.load-step{display:flex;align-items:center;gap:0.75rem;font-size:0.82rem;color:var(--ink3);}
+.load-step.done{color:var(--green);}.load-step.active{color:var(--accent);font-weight:500;}
+.load-icon{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7rem;flex-shrink:0;}
+.load-icon.done{background:var(--green-bg);color:var(--green);}
+.load-icon.active{background:var(--glow);color:var(--accent);}
+.load-icon.pending{background:var(--surface2);color:var(--ink4);}
+.spin{animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* Toast */
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(12px);background:var(--ink);color:#fff;padding:0.65rem 1.25rem;border-radius:10px;font-size:0.85rem;font-weight:500;z-index:200;opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.2);}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.success{background:var(--green);}.toast.error{background:var(--red);}.toast.warn{background:var(--amber);}
+
+/* Page loader */
+.page-loader{position:fixed;inset:0;background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;z-index:999;}
+.loader-spinner{width:36px;height:36px;border:3px solid var(--wire);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+
+@media(max-width:1100px){.factory-layout{grid-template-columns:1fr;}}
+@media(max-width:768px){.sidebar{display:none;}.main-area{margin-left:0;width:100%;}}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+<div class="page-loader" id="pageLoader"><div class="loader-spinner"></div><div style="font-size:0.9rem;color:var(--ink3)">Loading Integration Factory...</div></div>
+
+<div id="appShell" style="display:none">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-top">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon">⚡</div>
+      <div class="sidebar-brand-name">Flow<span>Forge</span></div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Integration Factory</div>
+    <button class="nav-item active" id="nav-builder" onclick="showView('builder')"><span class="icon">🏭</span> Build Integration</button>
+    <button class="nav-item" id="nav-registry" onclick="showView('registry')"><span class="icon">📋</span> Pipeline Registry</button>
+    <div class="nav-section">Knowledge Base</div>
+    <button class="nav-item" onclick="window.location='workspace.html'"><span class="icon">🗂️</span> Knowledge Workspace</button>
+    <button class="nav-item" onclick="window.location='dashboard.html'"><span class="icon">📊</span> Dashboard</button>
+    <button class="nav-item" onclick="window.location='/'"><span class="icon">🏠</span> Back to site</button>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebarAvatar">?</div>
+      <div class="sidebar-user-name" id="sidebarName">Loading...</div>
+      <button class="sidebar-logout" onclick="logout()">↩</button>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main-area">
+  <header class="topbar">
+    <div style="font-size:0.8rem;color:var(--ink3)">Integration Factory / <strong id="topbarSection" style="color:var(--ink)">Build Integration</strong></div>
+    <div style="display:flex;gap:0.75rem;align-items:center">
+      <span style="font-size:0.78rem;color:var(--ink3)">Workspace: <strong id="wsStatus" style="color:var(--accent)">Loading...</strong></span>
+      <button class="btn btn-secondary btn-sm" onclick="window.location='workspace.html'">Open Workspace</button>
+    </div>
+  </header>
+
+  <div class="page-content">
+
+    <!-- ══ BUILDER VIEW ══ -->
+    <div class="view active" id="view-builder">
+      <div class="page-header">
+        <h1>🏭 Integration Factory</h1>
+        <p>Describe the integration you need. AI selects the right tool from your approved stack and generates production-ready code.</p>
+      </div>
+
+      <div class="factory-layout">
+
+        <!-- LEFT: Configuration -->
+        <div class="factory-left">
+
+          <!-- Integration description -->
+          <div class="builder-card">
+            <div class="builder-card-header">
+              <div class="builder-card-title">📝 Describe the integration</div>
+            </div>
+            <div class="builder-card-body">
+              <div class="form-group">
+                <label class="form-label">What do you need to integrate?</label>
+                <textarea class="form-input form-textarea" id="integrationDesc" style="min-height:120px" placeholder="e.g. Sync customer orders from Shopify to Snowflake every 15 minutes. Apply transformations to calculate lifetime value and normalize status codes. Alert on any data quality failures."></textarea>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Source system</label>
+                  <select class="form-input form-select" id="sourceSystem">
+                    <option value="">Select source...</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Destination system</label>
+                  <select class="form-input form-select" id="destSystem">
+                    <option value="">Select destination...</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Primary entity</label>
+                  <select class="form-input form-select" id="primaryEntity">
+                    <option value="">Select entity...</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Sync pattern</label>
+                  <select class="form-input form-select" id="syncPattern">
+                    <option value="incremental">Incremental (append new)</option>
+                    <option value="full_refresh">Full refresh</option>
+                    <option value="cdc">CDC (change data capture)</option>
+                    <option value="realtime">Real-time / event-driven</option>
+                    <option value="merge">Upsert / merge</option>
+                    <option value="streaming">Streaming</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Schedule / frequency</label>
+                  <select class="form-input form-select" id="schedule">
+                    <option value="realtime">Real-time</option>
+                    <option value="5min">Every 5 minutes</option>
+                    <option value="15min">Every 15 minutes</option>
+                    <option value="hourly">Hourly</option>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="on_event">On event trigger</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Volume estimate</label>
+                  <select class="form-input form-select" id="volume">
+                    <option value="small">Small (&lt;10K rows/day)</option>
+                    <option value="medium">Medium (10K–1M rows/day)</option>
+                    <option value="large">Large (1M–100M rows/day)</option>
+                    <option value="xlarge">XLarge (&gt;100M rows/day)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tool selection -->
+          <div class="builder-card">
+            <div class="builder-card-header">
+              <div class="builder-card-title">🛠️ Tool selection</div>
+              <span class="badge badge-gray" id="toolModeLabel">AI auto-select</span>
+            </div>
+            <div class="builder-card-body">
+              <div style="display:flex;gap:0.5rem;margin-bottom:0.875rem">
+                <button class="btn btn-secondary btn-sm" id="btnAutoSelect" onclick="setToolMode('auto')" style="border-color:var(--accent);color:var(--accent)">🧠 AI picks best tool</button>
+                <button class="btn btn-ghost btn-sm" id="btnManualSelect" onclick="setToolMode('manual')">✋ I'll choose</button>
+              </div>
+              <div id="autoSelectNote" style="font-size:0.78rem;color:var(--ink3);margin-bottom:0.75rem">AI will analyze your requirements and select the most appropriate tool from your approved stack.</div>
+              <div class="tool-selector-grid" id="toolGrid" style="display:none"></div>
+            </div>
+          </div>
+
+          <!-- Advanced options -->
+          <div class="builder-card">
+            <div class="builder-card-header">
+              <div class="builder-card-title">⚙️ Advanced options</div>
+            </div>
+            <div class="builder-card-body">
+              <div class="form-group">
+                <label class="form-label">Error handling strategy</label>
+                <select class="form-input form-select" id="errorStrategy">
+                  <option value="retry_exponential">Retry with exponential backoff</option>
+                  <option value="dead_letter">Dead letter queue</option>
+                  <option value="skip_log">Skip and log</option>
+                  <option value="halt">Halt on error</option>
+                  <option value="alert_continue">Alert and continue</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Additional requirements</label>
+                <textarea class="form-input" id="additionalReqs" style="min-height:70px" placeholder="PII masking, column filtering, custom transformations, alerting rules, SLA requirements..."></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Generate -->
+          <div class="generate-bar">
+            <div class="generate-bar-text">
+              <h3>Generate integration</h3>
+              <p>AI will select tool, write code, create deployment guide & tests</p>
+            </div>
+            <button class="btn btn-lg" id="generateBtn" onclick="generateIntegration()">⚡ Generate</button>
+          </div>
+
+        </div>
+
+        <!-- RIGHT: Output -->
+        <div class="factory-right" id="factoryRight">
+          <div class="output-empty" id="outputEmpty">
+            <div class="output-empty-icon">🏭</div>
+            <h3>Ready to generate</h3>
+            <p>Configure your integration on the left and click Generate. AI will write production-ready code in your approved tools.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══ REGISTRY VIEW ══ -->
+    <div class="view" id="view-registry">
+      <div class="page-header">
+        <h1>📋 Pipeline Registry</h1>
+        <p>All integrations built in the factory. Track status, view code, and manage deployments.</p>
+      </div>
+      <div style="display:flex;gap:0.75rem;margin-bottom:1.25rem">
+        <button class="btn btn-primary" onclick="showView('builder')">+ Build new integration</button>
+      </div>
+      <div class="registry-list" id="registryList">
+        <div style="text-align:center;padding:3rem;color:var(--ink3);font-size:0.875rem;background:var(--bg);border:1px solid var(--wire);border-radius:12px">
+          No integrations built yet. Go to Build Integration to create your first pipeline.
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<script>
+const API = 'https://flowforge-backend-1b72.onrender.com';
+let currentUser = null;
+let ws = { systems:[], entities:[], tools:[] };
+let generatedIntegrations = [];
+let selectedTool = null;
+let toolMode = 'auto';
+let currentOutput = null;
+
+const ALL_TOOLS = [
+  {id:'dbt',name:'dbt',emoji:'🔄',category:'Transformation',desc:'SQL-based transformations'},
+  {id:'airflow',name:'Apache Airflow',emoji:'🌊',category:'Orchestration',desc:'Workflow orchestration'},
+  {id:'prefect',name:'Prefect',emoji:'🌀',category:'Orchestration',desc:'Modern orchestration'},
+  {id:'airbyte',name:'Airbyte',emoji:'🔌',category:'Ingestion',desc:'ELT pipelines'},
+  {id:'fivetran',name:'Fivetran',emoji:'🔗',category:'Ingestion',desc:'Automated connectors'},
+  {id:'kafka',name:'Apache Kafka',emoji:'⚡',category:'Streaming',desc:'Event streaming'},
+  {id:'spark',name:'Spark/Databricks',emoji:'🧱',category:'Processing',desc:'Large-scale processing'},
+  {id:'snowflake',name:'Snowflake',emoji:'❄️',category:'Warehouse',desc:'Cloud data warehouse'},
+  {id:'bigquery',name:'BigQuery',emoji:'🏛️',category:'Warehouse',desc:'Google data warehouse'},
+  {id:'redshift',name:'Redshift',emoji:'🔴',category:'Warehouse',desc:'AWS data warehouse'},
+  {id:'glue',name:'AWS Glue',emoji:'☁️',category:'Cloud ETL',desc:'Serverless ETL'},
+  {id:'python',name:'Python Pipeline',emoji:'🐍',category:'Custom',desc:'Custom Python script'},
+  {id:'sqlpipeline',name:'SQL Pipeline',emoji:'🗄️',category:'Custom',desc:'Pure SQL pipeline'},
+  {id:'lambda',name:'AWS Lambda',emoji:'λ',category:'Serverless',desc:'Event-driven functions'},
+  {id:'dataflow',name:'Google Dataflow',emoji:'🌊',category:'Cloud ETL',desc:'Apache Beam on GCP'},
+  {id:'adf',name:'Azure Data Factory',emoji:'🏭',category:'Cloud ETL',desc:'Azure ETL service'},
+];
+
+// ── INIT ──────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  const token = localStorage.getItem('ff_token');
+  if (!token) { window.location.href = '/'; return; }
+  try {
+    const res = await apiFetch('/api/auth/me');
+    currentUser = res.user;
+    document.getElementById('sidebarAvatar').textContent = (currentUser.name||currentUser.email).charAt(0).toUpperCase();
+    document.getElementById('sidebarName').textContent = currentUser.name||currentUser.email.split('@')[0];
+    loadWorkspaceContext();
+    loadRegistry();
+    document.getElementById('pageLoader').style.display = 'none';
+    document.getElementById('appShell').style.display = 'block';
+  } catch { localStorage.removeItem('ff_token'); window.location.href = '/'; }
+});
+
+function loadWorkspaceContext() {
+  if (!currentUser) return;
+  const saved = localStorage.getItem('ff_ws_' + currentUser._id);
+  if (saved) {
+    ws = JSON.parse(saved);
+    const wsStatus = document.getElementById('wsStatus');
+    const totalDefined = ws.systems.length + ws.entities.length + ws.tools.length;
+    wsStatus.textContent = totalDefined > 0 ? `${ws.systems.length} systems, ${ws.entities.length} entities, ${ws.tools.length} tools` : 'Not configured';
+    wsStatus.style.color = totalDefined > 0 ? 'var(--green)' : 'var(--amber)';
+  } else {
+    document.getElementById('wsStatus').textContent = 'Not configured';
+    document.getElementById('wsStatus').style.color = 'var(--amber)';
+  }
+  populateDropdowns();
+  renderToolGrid();
+}
+
+function populateDropdowns() {
+  const srcSel = document.getElementById('sourceSystem');
+  const dstSel = document.getElementById('destSystem');
+  const entSel = document.getElementById('primaryEntity');
+  const systems = ws.systems.length > 0 ? ws.systems : [{name:'Generic Source'},{name:'Generic Destination'}];
+  const entities = ws.entities.length > 0 ? ws.entities : [{name:'customer'},{name:'order'},{name:'product'}];
+  [srcSel, dstSel].forEach(sel => {
+    sel.innerHTML = '<option value="">Select...</option>' + systems.map(s => `<option value="${escHtml(s.name)}">${escHtml(s.name)}</option>`).join('');
+  });
+  entSel.innerHTML = '<option value="">Select entity...</option>' + entities.map(e => `<option value="${escHtml(e.name||e)}">${escHtml(e.name||e)}</option>`).join('');
+}
+
+function renderToolGrid() {
+  const grid = document.getElementById('toolGrid');
+  const approvedNames = ws.tools.map(t => t.name?.toLowerCase());
+  grid.innerHTML = ALL_TOOLS.map(t => {
+    const isApproved = approvedNames.length === 0 || approvedNames.some(n => n && n.includes(t.id)) || approvedNames.some(n => n && t.name.toLowerCase().includes(n));
+    return `<div class="tool-chip ${selectedTool===t.id?'selected':''} ${!isApproved && approvedNames.length>0?'unavailable':''}" onclick="selectTool('${t.id}')" title="${t.desc}">
+      <span class="tool-emoji">${t.emoji}</span>
+      <div>
+        <div style="font-size:0.78rem;font-weight:600">${t.name}</div>
+        <div style="font-size:0.68rem;color:var(--ink3)">${t.category}</div>
+      </div>
+      ${!isApproved && approvedNames.length>0 ? '<span style="margin-left:auto;font-size:0.65rem;color:var(--amber)">⚠ not approved</span>' : ''}
+    </div>`;
+  }).join('');
+}
+
+function setToolMode(mode) {
+  toolMode = mode;
+  document.getElementById('toolGrid').style.display = mode==='manual' ? 'grid' : 'none';
+  document.getElementById('autoSelectNote').style.display = mode==='auto' ? 'block' : 'none';
+  document.getElementById('toolModeLabel').textContent = mode==='auto' ? 'AI auto-select' : 'Manual select';
+  document.getElementById('btnAutoSelect').style.cssText = mode==='auto' ? 'border-color:var(--accent);color:var(--accent)' : '';
+  document.getElementById('btnManualSelect').style.cssText = mode==='manual' ? 'border-color:var(--accent);color:var(--accent)' : '';
+}
+
+function selectTool(id) {
+  selectedTool = id;
+  renderToolGrid();
+}
+
+// ── VIEWS ─────────────────────────────────────────────────────────
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  document.getElementById('nav-'+name)?.classList.add('active');
+  const titles = {builder:'Build Integration',registry:'Pipeline Registry'};
+  document.getElementById('topbarSection').textContent = titles[name]||name;
+}
+
+// ── GENERATION ────────────────────────────────────────────────────
+async function generateIntegration() {
+  const desc = document.getElementById('integrationDesc').value.trim();
+  if (!desc) { showToast('Describe the integration first', 'warn'); return; }
+
+  const config = {
+    desc, source: document.getElementById('sourceSystem').value,
+    dest: document.getElementById('destSystem').value,
+    entity: document.getElementById('primaryEntity').value,
+    pattern: document.getElementById('syncPattern').value,
+    schedule: document.getElementById('schedule').value,
+    volume: document.getElementById('volume').value,
+    errorStrategy: document.getElementById('errorStrategy').value,
+    additionalReqs: document.getElementById('additionalReqs').value,
+    toolMode, selectedTool,
+    wsContext: { systems: ws.systems.slice(0,5), entities: ws.entities.slice(0,5), tools: ws.tools.slice(0,10) }
+  };
+
+  const btn = document.getElementById('generateBtn');
+  btn.disabled = true; btn.textContent = '⏳ Generating...';
+  showLoadingState();
+
+  try {
+    const result = await runGeneration(config);
+    currentOutput = result;
+    saveToRegistry(result, config);
+    renderOutput(result);
+    showToast('Integration generated! 🎉', 'success');
+  } catch(err) {
+    console.error(err);
+    document.getElementById('factoryRight').innerHTML = `<div class="output-empty"><div class="output-empty-icon">⚠️</div><h3>Generation failed</h3><p>${err.message}</p><button class="btn btn-primary" onclick="generateIntegration()" style="margin-top:1rem">Try again</button></div>`;
+    showToast('Generation failed: ' + err.message, 'error');
+  }
+  btn.disabled = false; btn.textContent = '⚡ Generate';
+}
+
+function showLoadingState() {
+  const steps = [
+    'Analyzing integration requirements...',
+    'Selecting optimal tool from approved stack...',
+    'Designing data pipeline architecture...',
+    'Generating production-ready code...',
+    'Creating deployment guide...',
+    'Writing test plan...',
+    'Estimating performance & cost...'
+  ];
+  document.getElementById('factoryRight').innerHTML = `
+    <div class="loading-overlay">
+      <div style="font-size:2rem;margin-bottom:0.75rem">🧠</div>
+      <h3 style="font-size:1rem;font-weight:700;margin-bottom:0.35rem">Building your integration...</h3>
+      <p style="font-size:0.82rem;color:var(--ink3)">AI is generating production-ready code in your approved toolset</p>
+      <div class="loading-steps">
+        ${steps.map((s,i) => `<div class="load-step ${i===0?'active':'pending'}" id="ls-${i}"><div class="load-icon ${i===0?'active':'pending'}" id="li-${i}">${i===0?'<div style="width:10px;height:10px;border:1.5px solid var(--glow);border-top-color:var(--accent);border-radius:50%" class="spin"></div>':'•'}</div>${s}</div>`).join('')}
+      </div>
+    </div>`;
+  let cur = 0;
+  const iv = setInterval(() => {
+    if(cur>0){const ps=document.getElementById('ls-'+(cur-1));const pi=document.getElementById('li-'+(cur-1));if(ps){ps.className='load-step done';pi.className='load-icon done';pi.innerHTML='✓';}}
+    if(cur<steps.length){const cs=document.getElementById('ls-'+cur);const ci=document.getElementById('li-'+cur);if(cs){cs.className='load-step active';ci.className='load-icon active';ci.innerHTML='<div style="width:10px;height:10px;border:1.5px solid var(--glow);border-top-color:var(--accent);border-radius:50%" class="spin"></div>';}}
+    cur++; if(cur>steps.length+1) clearInterval(iv);
+  }, 1600);
+}
+
+async function runGeneration(config) {
+  const entityInfo = ws.entities.find(e => e.name === config.entity);
+  const sourceInfo = ws.systems.find(s => s.name === config.source);
+  const approvedToolsList = ws.tools.length > 0 ? ws.tools.map(t => t.name).join(', ') : 'Any standard tool';
+
+  const prompt = `You are a senior data engineer and integration architect. Generate a complete, production-ready data integration.
+
+## Integration Request
+Description: ${config.desc}
+Source system: ${config.source || 'not specified'}
+Destination: ${config.dest || 'not specified'}
+Primary entity: ${config.entity || 'not specified'}
+Sync pattern: ${config.pattern}
+Schedule: ${config.schedule}
+Volume: ${config.volume}
+Error strategy: ${config.errorStrategy}
+Additional requirements: ${config.additionalReqs || 'none'}
+
+## Approved Tools
+${approvedToolsList}
+Tool selection mode: ${config.toolMode === 'auto' ? 'AI selects best tool' : 'User selected: ' + (ALL_TOOLS.find(t=>t.id===config.selectedTool)?.name||config.selectedTool)}
+
+## Source System Details
+${sourceInfo ? JSON.stringify({capabilities: sourceInfo.capabilities, formats: sourceInfo.formats, tech: sourceInfo.tech}) : 'Standard REST API assumed'}
+
+## Entity Schema
+${entityInfo ? JSON.stringify({fields: entityInfo.fields?.slice(0,10), dqRules: entityInfo.dqRules}) : 'Standard entity structure assumed'}
+
+Respond ONLY with valid JSON (no markdown backticks):
+{
+  "selected_tool": "exact tool name",
+  "tool_emoji": "emoji for the tool",
+  "tool_reasoning": "2-3 sentences explaining why this tool was selected for this use case",
+  "alternative_tool": "name of a potentially better tool outside the approved stack, or null",
+  "alternative_reasoning": "why the alternative might be better, or null",
+  "alternative_cost": "estimated monthly cost of alternative, or null",
+  "pipeline_name": "descriptive pipeline name",
+  "architecture_summary": "2-3 sentence description of the pipeline architecture",
+  "performance_estimate": {
+    "latency": "e.g. <15 minutes end-to-end",
+    "throughput": "e.g. 50K records/minute",
+    "cost_estimate": "e.g. ~$120/month"
+  },
+  "files": [
+    {
+      "filename": "exact filename with extension",
+      "language": "python/sql/yaml/json/bash",
+      "description": "what this file does",
+      "content": "FULL production-ready code here - minimum 30 lines, real working code with proper error handling, logging, comments"
+    }
+  ],
+  "deployment_steps": [
+    {
+      "title": "step title",
+      "description": "what to do",
+      "command": "exact CLI command if applicable, or null"
+    }
+  ],
+  "test_cases": [
+    {
+      "name": "test name",
+      "type": "unit/integration/data_quality",
+      "description": "what this test validates",
+      "expected": "expected result"
+    }
+  ],
+  "monitoring": {
+    "metrics": ["metric1", "metric2", "metric3"],
+    "alerts": ["alert condition 1", "alert condition 2"],
+    "dashboard_notes": "what to monitor in production"
+  }
+}
+
+Generate at least 2-3 files with REAL, COMPLETE, PRODUCTION-READY code. Not pseudocode. Actual working code.`;
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  const data = await response.json();
+  const text = data.content?.map(b => b.text||'').join('') || '';
+  const clean = text.replace(/```json|```/g,'').trim();
+  return JSON.parse(clean);
+}
+
+// ── RENDER OUTPUT ─────────────────────────────────────────────────
+function renderOutput(r) {
+  const altHtml = r.alternative_tool ? `
+    <div class="tool-rec-alt">
+      <div class="tool-rec-alt-icon">💡</div>
+      <div>
+        <strong>Better tool available: ${escHtml(r.alternative_tool)}</strong> (${escHtml(r.alternative_cost||'cost varies')})<br>
+        ${escHtml(r.alternative_reasoning||'')}
+      </div>
+    </div>` : '';
+
+  const tabs = (r.files||[]).map((f,i) => `<button class="code-tab ${i===0?'active':''}" onclick="switchTab(${i})">${escHtml(f.filename)}</button>`).join('');
+  const panels = (r.files||[]).map((f,i) => `
+    <div class="code-panel ${i===0?'active':''}" id="panel-${i}">
+      <div style="padding:0.75rem 1.25rem;border-bottom:1px solid var(--wire);display:flex;align-items:center;justify-content:space-between;background:var(--surface)">
+        <span style="font-size:0.78rem;color:var(--ink3)">${escHtml(f.description||'')}</span>
+        <button class="btn btn-ghost btn-sm" onclick="copyCode(${i})">📋 Copy</button>
+      </div>
+      <div class="code-block"><pre id="code-${i}">${escHtml(f.content||'')}</pre></div>
+    </div>`).join('');
+
+  const deploySteps = (r.deployment_steps||[]).map((s,i) => `
+    <div class="deploy-step">
+      <div class="deploy-step-num">${i+1}</div>
+      <div class="deploy-step-content">
+        <h4>${escHtml(s.title)}</h4>
+        <p>${escHtml(s.description)}</p>
+        ${s.command ? `<div class="deploy-step-code">${escHtml(s.command)}</div>` : ''}
+      </div>
+    </div>`).join('');
+
+  const testRows = (r.test_cases||[]).map(t => `
+    <tr>
+      <td style="font-weight:600">${escHtml(t.name)}</td>
+      <td><span class="badge ${t.type==='data_quality'?'badge-green':t.type==='integration'?'badge-blue':'badge-purple'}">${escHtml(t.type)}</span></td>
+      <td style="color:var(--ink2)">${escHtml(t.description)}</td>
+      <td style="color:var(--green);font-size:0.78rem">${escHtml(t.expected)}</td>
+    </tr>`).join('');
+
+  const monitoringHtml = r.monitoring ? `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:0.75rem">
+      <div>
+        <div style="font-size:0.75rem;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:0.5rem">Key metrics</div>
+        ${(r.monitoring.metrics||[]).map(m=>`<div style="font-size:0.8rem;padding:0.3rem 0;border-bottom:1px solid var(--wire2);color:var(--ink2)">📊 ${escHtml(m)}</div>`).join('')}
+      </div>
+      <div>
+        <div style="font-size:0.75rem;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:0.5rem">Alert conditions</div>
+        ${(r.monitoring.alerts||[]).map(a=>`<div style="font-size:0.8rem;padding:0.3rem 0;border-bottom:1px solid var(--wire2);color:var(--red)">🔔 ${escHtml(a)}</div>`).join('')}
+      </div>
+    </div>
+    ${r.monitoring.dashboard_notes ? `<div style="margin-top:0.75rem;padding:0.75rem;background:var(--blue-bg);border-radius:8px;font-size:0.8rem;color:var(--ink2)">${escHtml(r.monitoring.dashboard_notes)}</div>` : ''}` : '';
+
+  document.getElementById('factoryRight').innerHTML = `
+    <!-- Tool recommendation -->
+    <div class="tool-recommendation">
+      <div class="tool-rec-header">
+        <div class="tool-rec-selected">
+          <div class="tool-rec-icon">${r.tool_emoji||'🔧'}</div>
+          <div>
+            <div class="tool-rec-name">${escHtml(r.selected_tool||'')}</div>
+            <div class="tool-rec-why">${escHtml(r.tool_reasoning||'')}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+          <span class="badge badge-green">✓ Approved</span>
+          <span class="badge badge-gray">${escHtml(r.performance_estimate?.cost_estimate||'')}</span>
+        </div>
+      </div>
+      ${altHtml ? `<div class="tool-rec-body">${altHtml}</div>` : ''}
+    </div>
+
+    <!-- Performance -->
+    <div class="perf-card" style="margin-bottom:1rem">
+      <div style="font-size:0.825rem;font-weight:700;margin-bottom:0.25rem">${escHtml(r.pipeline_name||'Pipeline')}</div>
+      <div style="font-size:0.8rem;color:var(--ink2)">${escHtml(r.architecture_summary||'')}</div>
+      <div class="perf-grid">
+        <div class="perf-metric"><div class="perf-metric-val">${escHtml(r.performance_estimate?.latency||'—')}</div><div class="perf-metric-label">Latency</div></div>
+        <div class="perf-metric"><div class="perf-metric-val">${escHtml(r.performance_estimate?.throughput||'—')}</div><div class="perf-metric-label">Throughput</div></div>
+        <div class="perf-metric"><div class="perf-metric-val">${escHtml(r.performance_estimate?.cost_estimate||'—')}</div><div class="perf-metric-label">Est. cost</div></div>
+      </div>
+    </div>
+
+    <!-- Code tabs -->
+    <div class="code-output" style="margin-bottom:1rem">
+      <div class="code-tabs">${tabs}</div>
+      ${panels}
+      <div class="code-actions">
+        <button class="btn btn-primary btn-sm" onclick="copyCurrentCode()">📋 Copy current file</button>
+        <button class="btn btn-secondary btn-sm" onclick="downloadAll()">⬇ Download all files</button>
+        <button class="btn btn-green btn-sm" onclick="saveToRegistry(currentOutput,{})">💾 Save to registry</button>
+      </div>
+    </div>
+
+    <!-- Deployment guide -->
+    <div class="builder-card" style="margin-bottom:1rem">
+      <div class="builder-card-header"><div class="builder-card-title">🚀 Deployment guide</div></div>
+      <div class="builder-card-body"><div class="deploy-steps">${deploySteps}</div></div>
+    </div>
+
+    <!-- Test plan -->
+    <div class="builder-card" style="margin-bottom:1rem">
+      <div class="builder-card-header"><div class="builder-card-title">🧪 Test plan</div><span class="badge badge-blue">${(r.test_cases||[]).length} tests</span></div>
+      <div style="overflow-x:auto">
+        <table class="test-table">
+          <thead><tr><th>Test</th><th>Type</th><th>Validates</th><th>Expected</th></tr></thead>
+          <tbody>${testRows}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Monitoring -->
+    <div class="builder-card">
+      <div class="builder-card-header"><div class="builder-card-title">📡 Monitoring & alerts</div></div>
+      <div class="builder-card-body">${monitoringHtml}</div>
+    </div>`;
+}
+
+// ── CODE ACTIONS ──────────────────────────────────────────────────
+let activeTab = 0;
+function switchTab(i) {
+  activeTab = i;
+  document.querySelectorAll('.code-tab').forEach((t,idx) => t.classList.toggle('active', idx===i));
+  document.querySelectorAll('.code-panel').forEach((p,idx) => p.classList.toggle('active', idx===i));
+}
+
+function copyCode(i) {
+  const code = document.getElementById('code-'+i)?.textContent || '';
+  navigator.clipboard.writeText(code).then(() => showToast('Copied!', 'success')).catch(()=>{});
+}
+
+function copyCurrentCode() { copyCode(activeTab); }
+
+function downloadAll() {
+  if (!currentOutput?.files) return;
+  currentOutput.files.forEach(f => {
+    const blob = new Blob([f.content||''], {type:'text/plain'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = f.filename;
+    a.click();
+  });
+  showToast('Downloading ' + currentOutput.files.length + ' files!', 'success');
+}
+
+// ── REGISTRY ──────────────────────────────────────────────────────
+function saveToRegistry(result, config) {
+  if (!result || !currentUser) return;
+  const item = {
+    id: Date.now(),
+    name: result.pipeline_name || 'Pipeline',
+    tool: result.selected_tool,
+    toolEmoji: result.tool_emoji || '🔧',
+    source: config.source || 'Unknown',
+    dest: config.dest || 'Unknown',
+    pattern: config.pattern || '',
+    schedule: config.schedule || '',
+    createdAt: new Date().toISOString(),
+    result
+  };
+  const key = 'ff_integrations_' + currentUser._id;
+  const existing = JSON.parse(localStorage.getItem(key) || '[]');
+  const alreadyExists = existing.find(e => e.id === item.id);
+  if (!alreadyExists) {
+    existing.unshift(item);
+    localStorage.setItem(key, JSON.stringify(existing.slice(0,50)));
+  }
+  generatedIntegrations = existing;
+  renderRegistry();
+}
+
+function loadRegistry() {
+  if (!currentUser) return;
+  const key = 'ff_integrations_' + currentUser._id;
+  generatedIntegrations = JSON.parse(localStorage.getItem(key) || '[]');
+  renderRegistry();
+}
+
+function renderRegistry() {
+  const list = document.getElementById('registryList');
+  if (generatedIntegrations.length === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--ink3);font-size:0.875rem;background:var(--bg);border:1px solid var(--wire);border-radius:12px">No integrations built yet. Go to Build Integration to create your first pipeline.</div>';
+    return;
+  }
+  list.innerHTML = generatedIntegrations.map(item => `
+    <div class="registry-item" onclick="loadFromRegistry('${item.id}')">
+      <div class="registry-tool-icon">${item.toolEmoji||'🔧'}</div>
+      <div class="registry-info">
+        <div class="registry-name">${escHtml(item.name)}</div>
+        <div class="registry-meta">
+          <span>🛠️ ${escHtml(item.tool||'')}</span>
+          <span>📤 ${escHtml(item.source||'')} → ${escHtml(item.dest||'')}</span>
+          <span>🕐 ${escHtml(item.schedule||'')}</span>
+          <span>📅 ${new Date(item.createdAt).toLocaleDateString()}</span>
+        </div>
+      </div>
+      <div class="registry-actions">
+        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();viewRegistryItem('${item.id}')">View code</button>
+        <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteRegistryItem('${item.id}')">Delete</button>
+      </div>
+    </div>`).join('');
+}
+
+function loadFromRegistry(id) {
+  const item = generatedIntegrations.find(i => i.id == id);
+  if (!item?.result) return;
+  currentOutput = item.result;
+  showView('builder');
+  setTimeout(() => renderOutput(item.result), 100);
+}
+
+function viewRegistryItem(id) { loadFromRegistry(id); }
+
+function deleteRegistryItem(id) {
+  if (!confirm('Delete this integration?')) return;
+  generatedIntegrations = generatedIntegrations.filter(i => i.id != id);
+  localStorage.setItem('ff_integrations_' + currentUser._id, JSON.stringify(generatedIntegrations));
+  renderRegistry();
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────
+async function apiFetch(path, options={}) {
+  const headers = {'Content-Type':'application/json'};
+  const token = localStorage.getItem('ff_token');
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const res = await fetch(API+path, {...options, headers:{...headers,...options.headers}});
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error||'Request failed');
+  return data;
+}
+
+function logout() { localStorage.removeItem('ff_token'); window.location.href = '/'; }
+function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast'+(type?' '+type:'');
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 3500);
+}
+</script>
+</body>
+</html>
