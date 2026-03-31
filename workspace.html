@@ -1,0 +1,1657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Knowledge Workspace — FlowForge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── RESET & BASE ─────────────────────────────────────────────── */
+:root {
+  --ink: #0d0d14; --ink2: #3a3a4a; --ink3: #7a7a8a; --ink4: #b0b0bc;
+  --wire: #e4e4ef; --wire2: #f0f0f8; --wire3: #f7f7fc;
+  --bg: #ffffff; --surface: #f8f8fc; --surface2: #f2f2f8;
+  --accent: #4338f5; --accent2: #6366f1; --accent-glow: rgba(67,56,245,0.12);
+  --green: #059669; --green-bg: rgba(5,150,105,0.08);
+  --amber: #d97706; --amber-bg: rgba(217,119,6,0.08);
+  --red: #dc2626; --red-bg: rgba(220,38,38,0.08);
+  --purple: #7c3aed; --purple-bg: rgba(124,58,237,0.08);
+  --blue: #0284c7; --blue-bg: rgba(2,132,199,0.08);
+  --sidebar-w: 260px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', -apple-system, system-ui, sans-serif; color: var(--ink); background: var(--surface); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
+a { text-decoration: none; color: inherit; }
+button { font-family: inherit; cursor: pointer; }
+input, textarea, select { font-family: inherit; }
+p { max-width: 72ch; }
+.page-header p, .card p, .modal p { max-width: 72ch; }
+.system-desc, .process-desc, .entity-desc, .ai-panel-text { max-width: none !important; }
+
+/* ── LAYOUT ───────────────────────────────────────────────────── */
+.workspace { display: block; min-height: 100vh; }
+
+/* ── SIDEBAR ──────────────────────────────────────────────────── */
+.sidebar {
+  background: #0d0d14; color: rgba(255,255,255,0.75);
+  display: flex; flex-direction: column;
+  position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w);
+  z-index: 50; overflow-y: auto;
+}
+.sidebar-top { padding: 1.25rem 1rem 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.sidebar-brand { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.75rem; }
+.sidebar-brand-icon { width: 28px; height: 28px; background: var(--accent); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; flex-shrink: 0; }
+.sidebar-brand-name { font-size: 0.95rem; font-weight: 800; color: #fff; letter-spacing: -0.3px; }
+.sidebar-brand-name span { color: #818cf8; }
+.workspace-selector { width: 100%; padding: 0.45rem 0.75rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: rgba(255,255,255,0.8); font-size: 0.8rem; font-weight: 500; display: flex; align-items: center; justify-content: space-between; }
+.sidebar-nav { flex: 1; padding: 0.75rem 0; }
+.nav-section { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.25); padding: 0.75rem 1rem 0.35rem; }
+.nav-item {
+  display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem 1rem;
+  font-size: 0.825rem; font-weight: 500; color: rgba(255,255,255,0.55);
+  border: none; background: none; width: 100%; text-align: left;
+  border-radius: 0; transition: all .15s; position: relative;
+}
+.nav-item:hover { color: rgba(255,255,255,0.85); background: rgba(255,255,255,0.05); }
+.nav-item.active { color: #fff; background: rgba(255,255,255,0.08); border-left: 2px solid #818cf8; }
+.nav-item .nav-icon { font-size: 0.9rem; width: 18px; text-align: center; flex-shrink: 0; }
+.nav-badge { margin-left: auto; font-size: 0.65rem; font-weight: 700; padding: 1px 6px; border-radius: 10px; background: rgba(99,102,241,0.3); color: #a5b4fc; }
+.nav-badge.warn { background: rgba(217,119,6,0.3); color: #fbbf24; }
+.sidebar-bottom { padding: 0.75rem 1rem; border-top: 1px solid rgba(255,255,255,0.06); }
+.sidebar-user { display: flex; align-items: center; gap: 0.6rem; }
+.sidebar-avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: #fff; flex-shrink: 0; }
+.sidebar-user-name { font-size: 0.8rem; font-weight: 600; color: rgba(255,255,255,0.8); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sidebar-logout { background: none; border: none; color: rgba(255,255,255,0.3); font-size: 0.75rem; padding: 2px 4px; }
+.sidebar-logout:hover { color: rgba(255,255,255,0.6); }
+
+/* ── MAIN AREA ────────────────────────────────────────────────── */
+.main-area { margin-left: var(--sidebar-w); display: flex; flex-direction: column; min-height: 100vh; width: calc(100% - var(--sidebar-w)); }
+.topbar { background: var(--bg); border-bottom: 1px solid var(--wire); padding: 0 2rem; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 40; width: 100%; }
+.topbar-left { display: flex; align-items: center; gap: 0.5rem; }
+.topbar-breadcrumb { font-size: 0.8rem; color: var(--ink3); }
+.topbar-breadcrumb span { color: var(--ink); font-weight: 600; }
+.topbar-right { display: flex; align-items: center; gap: 0.75rem; }
+.page-content { flex: 1; padding: 2rem; min-width: 0; overflow-x: hidden; }
+
+/* ── BUTTONS ──────────────────────────────────────────────────── */
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.825rem; font-weight: 600; border: none; cursor: pointer; transition: all .15s; white-space: nowrap; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: #3730e0; }
+.btn-secondary { background: var(--surface2); color: var(--ink); border: 1px solid var(--wire); }
+.btn-secondary:hover { background: var(--wire2); }
+.btn-ghost { background: transparent; color: var(--ink2); border: 1px solid var(--wire); }
+.btn-ghost:hover { background: var(--surface); }
+.btn-green { background: var(--green); color: #fff; }
+.btn-green:hover { background: #047857; }
+.btn-danger { background: var(--red-bg); color: var(--red); border: 1px solid rgba(220,38,38,0.2); }
+.btn-danger:hover { background: rgba(220,38,38,0.15); }
+.btn-sm { padding: 0.35rem 0.75rem; font-size: 0.775rem; }
+.btn-lg { padding: 0.7rem 1.5rem; font-size: 0.9rem; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ── BADGES ───────────────────────────────────────────────────── */
+.badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.7rem; font-weight: 600; padding: 2px 8px; border-radius: 20px; }
+.badge-blue { background: var(--blue-bg); color: var(--blue); }
+.badge-green { background: var(--green-bg); color: var(--green); }
+.badge-amber { background: var(--amber-bg); color: var(--amber); }
+.badge-red { background: var(--red-bg); color: var(--red); }
+.badge-purple { background: var(--purple-bg); color: var(--purple); }
+.badge-gray { background: var(--surface2); color: var(--ink3); border: 1px solid var(--wire); }
+
+/* ── CARDS ────────────────────────────────────────────────────── */
+.card { background: var(--bg); border: 1px solid var(--wire); border-radius: 12px; }
+.card-header { padding: 1rem 1.25rem; border-bottom: 1px solid var(--wire); display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.card-title { font-size: 0.875rem; font-weight: 700; }
+.card-body { padding: 1.25rem; }
+.card-footer { padding: 0.75rem 1.25rem; border-top: 1px solid var(--wire); background: var(--surface); border-radius: 0 0 12px 12px; }
+
+/* ── FORMS ────────────────────────────────────────────────────── */
+.form-group { margin-bottom: 1.1rem; }
+.form-label { display: block; font-size: 0.775rem; font-weight: 600; color: var(--ink2); margin-bottom: 0.35rem; text-transform: uppercase; letter-spacing: 0.4px; }
+.form-hint { font-size: 0.75rem; color: var(--ink3); margin-top: 0.3rem; }
+.form-input { width: 100%; padding: 0.6rem 0.875rem; border: 1px solid var(--wire); border-radius: 8px; font-size: 0.875rem; color: var(--ink); background: var(--bg); transition: border-color .15s, box-shadow .15s; }
+.form-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+.form-textarea { min-height: 120px; resize: vertical; line-height: 1.6; }
+.form-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237a7a8a' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.75rem center; padding-right: 2rem; cursor: pointer; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+
+/* ── PAGE HEADER ──────────────────────────────────────────────── */
+.page-header { margin-bottom: 1.75rem; }
+.page-header h1 { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 0.35rem; }
+.page-header p { font-size: 0.875rem; color: var(--ink3); max-width: 60ch; }
+
+/* ── PROGRESS BAR ─────────────────────────────────────────────── */
+.progress-bar { height: 6px; background: var(--wire); border-radius: 3px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 3px; transition: width .4s ease; }
+
+/* ── VIEWS ────────────────────────────────────────────────────── */
+.view { display: none; }
+.view.active { display: block; }
+
+/* ═══════════════════════════════════════════════════════════════
+   INTAKE VIEW
+═══════════════════════════════════════════════════════════════ */
+.intake-hero { background: linear-gradient(135deg, #0d0d14 0%, #1e1b4b 100%); border-radius: 16px; padding: 2rem; margin-bottom: 1.5rem; color: #fff; display: flex; align-items: center; justify-content: space-between; gap: 2rem; flex-wrap: wrap; }
+.intake-hero h2 { font-size: 1.2rem; font-weight: 800; margin-bottom: 0.4rem; }
+.intake-hero p { font-size: 0.85rem; color: rgba(255,255,255,0.65); max-width: 48ch; }
+.intake-stats { display: flex; gap: 1.5rem; flex-shrink: 0; }
+.intake-stat { text-align: center; }
+.intake-stat-num { font-size: 1.75rem; font-weight: 800; color: #818cf8; line-height: 1; }
+.intake-stat-label { font-size: 0.7rem; color: rgba(255,255,255,0.5); margin-top: 0.2rem; }
+
+.drop-zone { border: 2px dashed var(--wire); border-radius: 14px; padding: 3rem 2rem; text-align: center; cursor: pointer; transition: all .2s; background: var(--bg); margin-bottom: 1.5rem; }
+.drop-zone:hover, .drop-zone.drag { border-color: var(--accent); background: rgba(67,56,245,0.03); }
+.drop-zone-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+.drop-zone h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.35rem; }
+.drop-zone p { font-size: 0.82rem; color: var(--ink3); margin: 0 auto; }
+.drop-zone-formats { display: flex; gap: 0.4rem; justify-content: center; flex-wrap: wrap; margin-top: 0.75rem; }
+.format-tag { font-size: 0.7rem; font-weight: 600; padding: 2px 8px; border-radius: 20px; background: var(--surface2); border: 1px solid var(--wire); color: var(--ink3); }
+.drop-zone input[type=file] { display: none; }
+
+.paste-area { margin-bottom: 1.5rem; }
+.paste-area h3 { font-size: 0.875rem; font-weight: 700; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+.paste-textarea { width: 100%; min-height: 180px; padding: 1rem; border: 1px solid var(--wire); border-radius: 10px; font-size: 0.85rem; color: var(--ink); background: var(--bg); resize: vertical; line-height: 1.7; transition: border-color .15s; }
+.paste-textarea:focus { outline: none; border-color: var(--accent); }
+
+.doc-list { display: flex; flex-direction: column; gap: 0.6rem; }
+.doc-item { background: var(--bg); border: 1px solid var(--wire); border-radius: 10px; padding: 0.875rem 1rem; display: flex; align-items: center; gap: 0.875rem; }
+.doc-icon { font-size: 1.25rem; flex-shrink: 0; }
+.doc-info { flex: 1; min-width: 0; }
+.doc-name { font-size: 0.85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.doc-meta { font-size: 0.75rem; color: var(--ink3); margin-top: 0.1rem; }
+.doc-status { flex-shrink: 0; }
+.doc-remove { background: none; border: none; color: var(--ink4); font-size: 1rem; padding: 2px 6px; border-radius: 4px; }
+.doc-remove:hover { color: var(--red); background: var(--red-bg); }
+
+/* Processing overlay */
+.processing-bar { background: var(--bg); border: 1px solid var(--wire); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; display: none; }
+.processing-bar.show { display: block; }
+.processing-steps { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 1rem; }
+.proc-step { display: flex; align-items: center; gap: 0.75rem; font-size: 0.82rem; color: var(--ink3); }
+.proc-step.done { color: var(--green); }
+.proc-step.active { color: var(--accent); font-weight: 500; }
+.proc-icon { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; flex-shrink: 0; }
+.proc-icon.done { background: var(--green-bg); color: var(--green); }
+.proc-icon.active { background: var(--accent-glow); color: var(--accent); }
+.proc-icon.pending { background: var(--surface2); color: var(--ink4); }
+.spin { animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Gap finder */
+.gaps-section { margin-top: 1.5rem; }
+.gap-item { background: var(--amber-bg); border: 1px solid rgba(217,119,6,0.2); border-radius: 10px; padding: 0.875rem 1rem; margin-bottom: 0.6rem; display: flex; align-items: flex-start; gap: 0.75rem; }
+.gap-icon { font-size: 1rem; flex-shrink: 0; margin-top: 0.1rem; }
+.gap-info { flex: 1; }
+.gap-title { font-size: 0.825rem; font-weight: 700; color: var(--amber); margin-bottom: 0.2rem; }
+.gap-desc { font-size: 0.78rem; color: var(--ink2); }
+.gap-action { margin-top: 0.5rem; }
+
+/* ═══════════════════════════════════════════════════════════════
+   SOURCE SYSTEMS VIEW
+═══════════════════════════════════════════════════════════════ */
+.systems-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+.system-card { background: var(--bg); border: 1px solid var(--wire); border-radius: 12px; overflow: hidden; transition: all .2s; cursor: pointer; }
+.system-card:hover { border-color: var(--accent); box-shadow: 0 4px 20px var(--accent-glow); }
+.system-card-header { padding: 1rem 1.1rem; border-bottom: 1px solid var(--wire); display: flex; align-items: center; gap: 0.75rem; }
+.system-logo { width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+.system-name { font-size: 0.9rem; font-weight: 700; }
+.system-type { font-size: 0.75rem; color: var(--ink3); margin-top: 0.1rem; }
+.system-body { padding: 1rem 1.1rem; }
+.system-desc { font-size: 0.8rem; color: var(--ink2); margin-bottom: 0.875rem; line-height: 1.5; }
+.system-caps { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+.cap-tag { font-size: 0.68rem; font-weight: 600; padding: 2px 7px; border-radius: 20px; }
+.cap-api { background: var(--blue-bg); color: var(--blue); }
+.cap-event { background: var(--purple-bg); color: var(--purple); }
+.cap-replication { background: var(--green-bg); color: var(--green); }
+.cap-batch { background: var(--amber-bg); color: var(--amber); }
+.cap-webhook { background: rgba(99,102,241,0.1); color: var(--accent2); }
+.system-footer { padding: 0.75rem 1.1rem; border-top: 1px solid var(--wire); background: var(--surface); display: flex; align-items: center; justify-content: space-between; }
+.system-owner { font-size: 0.75rem; color: var(--ink3); }
+.add-system-card { background: var(--surface); border: 2px dashed var(--wire); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; padding: 2rem; cursor: pointer; transition: all .2s; min-height: 180px; }
+.add-system-card:hover { border-color: var(--accent); background: var(--accent-glow); }
+.add-system-card .add-icon { font-size: 1.75rem; color: var(--ink3); }
+.add-system-card p { font-size: 0.82rem; color: var(--ink3); font-weight: 500; }
+
+/* ═══════════════════════════════════════════════════════════════
+   CANONICAL ENTITIES VIEW
+═══════════════════════════════════════════════════════════════ */
+.entities-layout { display: grid; grid-template-columns: 280px 1fr; gap: 1.25rem; }
+.entities-list-panel { background: var(--bg); border: 1px solid var(--wire); border-radius: 12px; overflow: hidden; }
+.entities-list-header { padding: 0.875rem 1rem; border-bottom: 1px solid var(--wire); display: flex; align-items: center; justify-content: space-between; }
+.entities-list-header h3 { font-size: 0.825rem; font-weight: 700; }
+.entity-list-item { padding: 0.75rem 1rem; border-bottom: 1px solid var(--wire2); cursor: pointer; transition: background .15s; display: flex; align-items: center; gap: 0.6rem; }
+.entity-list-item:hover { background: var(--surface); }
+.entity-list-item.active { background: var(--accent-glow); border-left: 2px solid var(--accent); }
+.entity-list-item:last-child { border-bottom: none; }
+.entity-list-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+.entity-list-name { font-size: 0.825rem; font-weight: 600; }
+.entity-list-count { font-size: 0.7rem; color: var(--ink3); margin-left: auto; }
+
+.entity-detail-panel { display: flex; flex-direction: column; gap: 1rem; }
+.entity-detail-header { background: var(--bg); border: 1px solid var(--wire); border-radius: 12px; padding: 1.25rem; }
+.entity-detail-name { font-size: 1.2rem; font-weight: 800; font-family: 'JetBrains Mono', monospace; margin-bottom: 0.25rem; }
+.entity-detail-meta { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-top: 0.5rem; }
+
+.fields-section { background: var(--bg); border: 1px solid var(--wire); border-radius: 12px; overflow: hidden; }
+.fields-section-header { padding: 0.875rem 1.25rem; border-bottom: 1px solid var(--wire); display: flex; align-items: center; justify-content: space-between; }
+.fields-table { width: 100%; border-collapse: collapse; }
+.fields-table th { text-align: left; padding: 0.55rem 1rem; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--ink3); background: var(--surface); border-bottom: 1px solid var(--wire); }
+.fields-table td { padding: 0.65rem 1rem; border-bottom: 1px solid var(--wire2); font-size: 0.8rem; vertical-align: top; }
+.fields-table tr:last-child td { border-bottom: none; }
+.fields-table tr:hover td { background: var(--surface); }
+.field-name-cell { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; font-weight: 500; }
+.field-pk { display: inline-block; font-size: 0.62rem; font-weight: 700; padding: 1px 4px; background: var(--amber-bg); color: var(--amber); border-radius: 3px; margin-left: 4px; }
+.field-fk { display: inline-block; font-size: 0.62rem; font-weight: 700; padding: 1px 4px; background: var(--blue-bg); color: var(--blue); border-radius: 3px; margin-left: 4px; }
+.field-type-cell { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--purple); }
+.dq-rule { display: inline-flex; align-items: center; gap: 3px; font-size: 0.68rem; font-weight: 600; padding: 1px 6px; border-radius: 4px; background: var(--green-bg); color: var(--green); margin: 1px; }
+
+/* ═══════════════════════════════════════════════════════════════
+   DOMAIN MAP VIEW
+═══════════════════════════════════════════════════════════════ */
+.domain-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+.domain-card { background: var(--bg); border: 1px solid var(--wire); border-radius: 12px; overflow: hidden; }
+.domain-card-top { padding: 1rem 1.1rem; border-bottom: 1px solid var(--wire); }
+.domain-name { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.2rem; }
+.domain-owner { font-size: 0.75rem; color: var(--ink3); }
+.domain-entities { padding: 0.875rem 1.1rem; }
+.domain-entity-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0; border-bottom: 1px solid var(--wire2); font-size: 0.8rem; }
+.domain-entity-row:last-child { border-bottom: none; }
+.domain-entity-name { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--accent); }
+.domain-entity-role { margin-left: auto; font-size: 0.68rem; color: var(--ink3); }
+
+/* ═══════════════════════════════════════════════════════════════
+   TOOLSET VIEW
+═══════════════════════════════════════════════════════════════ */
+.toolset-categories { display: flex; flex-direction: column; gap: 1.5rem; }
+.toolset-category h3 { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--ink3); margin-bottom: 0.75rem; }
+.tools-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem; }
+.tool-card { background: var(--bg); border: 1px solid var(--wire); border-radius: 10px; padding: 0.875rem; display: flex; align-items: center; gap: 0.75rem; transition: all .15s; cursor: pointer; }
+.tool-card:hover { border-color: var(--accent); }
+.tool-card.approved { border-color: var(--green); background: var(--green-bg); }
+.tool-card.restricted { border-color: var(--amber); background: var(--amber-bg); opacity: 0.7; }
+.tool-icon { font-size: 1.25rem; flex-shrink: 0; }
+.tool-name { font-size: 0.825rem; font-weight: 700; }
+.tool-category { font-size: 0.72rem; color: var(--ink3); margin-top: 0.1rem; }
+.tool-status { margin-left: auto; flex-shrink: 0; }
+.add-tool-card { background: var(--surface); border: 2px dashed var(--wire); border-radius: 10px; padding: 0.875rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; cursor: pointer; transition: all .2s; font-size: 0.8rem; color: var(--ink3); font-weight: 500; }
+.add-tool-card:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ═══════════════════════════════════════════════════════════════
+   MODALS
+═══════════════════════════════════════════════════════════════ */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 100; display: flex; align-items: flex-start; justify-content: center; padding: 2rem 1rem; overflow-y: auto; opacity: 0; pointer-events: none; transition: opacity .2s; }
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal { background: var(--bg); border-radius: 16px; width: 100%; max-width: 680px; box-shadow: 0 25px 80px rgba(0,0,0,0.25); transform: scale(0.97); transition: transform .2s; }
+.modal-overlay.open .modal { transform: scale(1); }
+.modal-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--wire); display: flex; align-items: center; justify-content: space-between; }
+.modal-header h2 { font-size: 1rem; font-weight: 700; }
+.modal-close { background: none; border: none; font-size: 1.25rem; color: var(--ink3); padding: 4px 8px; border-radius: 6px; }
+.modal-close:hover { background: var(--surface); color: var(--ink); }
+.modal-body { padding: 1.5rem; }
+.modal-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--wire); display: flex; justify-content: flex-end; gap: 0.75rem; }
+
+/* AI Assist panel */
+.ai-panel { background: linear-gradient(135deg, rgba(67,56,245,0.04), rgba(124,58,237,0.04)); border: 1px solid rgba(99,102,241,0.2); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1rem; display: flex; gap: 0.875rem; align-items: flex-start; }
+.ai-panel-icon { width: 28px; height: 28px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; flex-shrink: 0; color: #fff; font-weight: 700; }
+.ai-panel-content { flex: 1; }
+.ai-panel-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent); margin-bottom: 0.25rem; }
+.ai-panel-text { font-size: 0.825rem; color: var(--ink2); line-height: 1.6; }
+
+/* ── COMPLETENESS METER ───────────────────────────────────────── */
+.completeness-bar { background: var(--bg); border: 1px solid var(--wire); border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; }
+.completeness-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.875rem; }
+.completeness-title { font-size: 0.875rem; font-weight: 700; }
+.completeness-pct { font-size: 1.25rem; font-weight: 800; color: var(--accent); }
+.completeness-segments { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; margin-top: 0.75rem; }
+.completeness-seg { text-align: center; }
+.completeness-seg-bar { height: 4px; border-radius: 2px; margin-bottom: 0.35rem; }
+.completeness-seg-label { font-size: 0.65rem; color: var(--ink3); }
+.completeness-seg-pct { font-size: 0.7rem; font-weight: 700; color: var(--ink2); }
+
+/* ── TOAST ────────────────────────────────────────────────────── */
+.toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(12px); background: var(--ink); color: #fff; padding: 0.65rem 1.25rem; border-radius: 10px; font-size: 0.85rem; font-weight: 500; z-index: 200; opacity: 0; transition: all .25s; pointer-events: none; white-space: nowrap; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.success { background: var(--green); }
+.toast.error { background: var(--red); }
+.toast.warn { background: var(--amber); }
+
+/* ── PAGE LOADER ──────────────────────────────────────────────── */
+.page-loader { position: fixed; inset: 0; background: var(--surface); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; z-index: 999; }
+.loader-brand { font-size: 1.25rem; font-weight: 800; color: var(--accent); }
+.loader-spinner { width: 36px; height: 36px; border: 3px solid var(--wire); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
+
+/* Responsive */
+@media (max-width: 1024px) {
+  :root { --sidebar-w: 220px; }
+  .entities-layout { grid-template-columns: 1fr; }
+  .form-row-3 { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 768px) {
+  .workspace { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .main-area { margin-left: 0; }
+}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- PAGE LOADER -->
+<div class="page-loader" id="pageLoader">
+  <div class="loader-spinner"></div>
+  <div class="loader-brand">FlowForge</div>
+</div>
+
+<!-- WORKSPACE SHELL -->
+<div class="workspace" id="workspaceShell" style="display:none">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-top">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon">⚡</div>
+        <div class="sidebar-brand-name">Flow<span>Forge</span></div>
+      </div>
+      <div class="workspace-selector">
+        <span id="wsName">My Workspace</span>
+        <span>▾</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Knowledge Base</div>
+      <button class="nav-item active" id="nav-intake" onclick="showView('intake')">
+        <span class="nav-icon">📥</span> Intake & Process
+        <span class="nav-badge warn" id="badge-intake">0</span>
+      </button>
+      <button class="nav-item" id="nav-systems" onclick="showView('systems')">
+        <span class="nav-icon">🖥️</span> Source Systems
+        <span class="nav-badge" id="badge-systems">0</span>
+      </button>
+      <button class="nav-item" id="nav-entities" onclick="showView('entities')">
+        <span class="nav-icon">📦</span> Canonical Entities
+        <span class="nav-badge" id="badge-entities">0</span>
+      </button>
+      <button class="nav-item" id="nav-domains" onclick="showView('domains')">
+        <span class="nav-icon">🗺️</span> Domain Map
+        <span class="nav-badge" id="badge-domains">0</span>
+      </button>
+      <button class="nav-item" id="nav-toolset" onclick="showView('toolset')">
+        <span class="nav-icon">🛠️</span> Approved Toolset
+        <span class="nav-badge" id="badge-toolset">0</span>
+      </button>
+      <div class="nav-section">Platform</div>
+      <button class="nav-item" onclick="window.location='operations.html'"><span class="icon">📡</span> Operations</button>
+      <button class="nav-item" onclick="window.location='knowledge-loop.html'"><span class="icon">🔄</span> Knowledge Loop</button>
+      <button class="nav-item" onclick="window.location='dashboard.html'">
+        <span class="nav-icon">📊</span> Dashboard
+      </button>
+      <button class="nav-item" onclick="window.location='factory.html'">
+        <span class="nav-icon">🏭</span> Integration Factory
+      </button>
+      <button class="nav-item" onclick="window.location='/'">
+        <span class="nav-icon">🏠</span> Back to site
+      </button>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="sidebar-user">
+        <div class="sidebar-avatar" id="sidebarAvatar">?</div>
+        <div class="sidebar-user-name" id="sidebarName">Loading...</div>
+        <button class="sidebar-logout" onclick="logout()">↩</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN AREA -->
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-breadcrumb">Knowledge Base / <span id="topbarSection">Intake & Process</span></div>
+      </div>
+      <div class="topbar-right">
+        <div id="completenessChip" style="font-size:0.78rem;color:var(--ink3)">Completeness: <strong id="completenessNum" style="color:var(--accent)">0%</strong></div>
+        <button class="btn btn-primary btn-sm" onclick="runAIAnalysis()">🧠 AI Analyze All</button>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- ══ INTAKE VIEW ══ -->
+      <div class="view active" id="view-intake">
+        <div class="page-header">
+          <h1>📥 Intake & Process Documentation</h1>
+          <p>Drop in any existing business information — wikis, architecture diagrams, requirement specs, process docs, SQL schemas, API docs. AI will organize, structure, and identify gaps.</p>
+        </div>
+
+        <!-- Completeness -->
+        <div class="completeness-bar">
+          <div class="completeness-header">
+            <div class="completeness-title">Knowledge base completeness</div>
+            <div class="completeness-pct" id="overallPct">0%</div>
+          </div>
+          <div class="progress-bar" style="margin-bottom:0.75rem">
+            <div class="progress-fill" id="overallBar" style="width:0%;background:var(--accent)"></div>
+          </div>
+          <div class="completeness-segments">
+            <div class="completeness-seg">
+              <div class="completeness-seg-bar" style="background:var(--accent)" id="seg-intake"></div>
+              <div class="completeness-seg-label">Intake</div>
+              <div class="completeness-seg-pct" id="seg-intake-pct">0%</div>
+            </div>
+            <div class="completeness-seg">
+              <div class="completeness-seg-bar" style="background:var(--blue)" id="seg-systems"></div>
+              <div class="completeness-seg-label">Systems</div>
+              <div class="completeness-seg-pct" id="seg-systems-pct">0%</div>
+            </div>
+            <div class="completeness-seg">
+              <div class="completeness-seg-bar" style="background:var(--purple)" id="seg-entities"></div>
+              <div class="completeness-seg-label">Entities</div>
+              <div class="completeness-seg-pct" id="seg-entities-pct">0%</div>
+            </div>
+            <div class="completeness-seg">
+              <div class="completeness-seg-bar" style="background:var(--green)" id="seg-domains"></div>
+              <div class="completeness-seg-label">Domains</div>
+              <div class="completeness-seg-pct" id="seg-domains-pct">0%</div>
+            </div>
+            <div class="completeness-seg">
+              <div class="completeness-seg-bar" style="background:var(--amber)" id="seg-toolset"></div>
+              <div class="completeness-seg-label">Toolset</div>
+              <div class="completeness-seg-pct" id="seg-toolset-pct">0%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Drop zone -->
+        <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileUpload').click()" ondrop="handleFileDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+          <input type="file" id="fileUpload" multiple accept=".txt,.md,.sql,.json,.csv,.pdf,.docx,.xml,.yaml,.yml" onchange="handleFileSelect(event)">
+          <div class="drop-zone-icon">📂</div>
+          <h3>Drop any documentation here</h3>
+          <p>Wiki pages, architecture diagrams, requirement specs, SQL schemas, API docs, process flows, org charts — anything</p>
+          <div class="drop-zone-formats">
+            <span class="format-tag">TXT</span><span class="format-tag">MD</span><span class="format-tag">SQL</span>
+            <span class="format-tag">JSON</span><span class="format-tag">CSV</span><span class="format-tag">YAML</span>
+            <span class="format-tag">XML</span><span class="format-tag">PDF</span>
+          </div>
+        </div>
+
+        <!-- Paste area -->
+        <div class="paste-area">
+          <h3>📋 Or paste documentation directly</h3>
+          <textarea class="paste-textarea" id="pasteContent" placeholder="Paste anything here — process documentation, API specs, data dictionaries, meeting notes about your architecture, ERDs in text form, Confluence/Notion exports...
+
+The more context you give, the better AI can structure your knowledge base and identify gaps."></textarea>
+          <div style="display:flex;gap:0.75rem;margin-top:0.75rem;align-items:center">
+            <input class="form-input" id="pasteLabel" placeholder="Label this document (optional, e.g. 'Order Management Process')" style="max-width:380px">
+            <button class="btn btn-primary" onclick="addPastedDoc()">Add document</button>
+          </div>
+        </div>
+
+        <!-- Processing status -->
+        <div class="processing-bar" id="processingBar">
+          <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.75rem">
+            <div style="width:18px;height:18px;border:2px solid var(--accent-glow);border-top-color:var(--accent);border-radius:50%" class="spin"></div>
+            <strong style="font-size:0.875rem">AI is analyzing your documentation...</strong>
+          </div>
+          <div class="processing-steps" id="processingSteps"></div>
+        </div>
+
+        <!-- Document list -->
+        <div id="docListSection" style="display:none">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.875rem">
+            <h3 style="font-size:0.875rem;font-weight:700">Processed documents (<span id="docCount">0</span>)</h3>
+            <button class="btn btn-primary btn-sm" onclick="analyzeAllDocs()">🧠 Analyze & extract knowledge</button>
+          </div>
+          <div class="doc-list" id="docList"></div>
+        </div>
+
+        <!-- Gaps section -->
+        <div class="gaps-section" id="gapsSection" style="display:none">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.875rem">
+            <h3 style="font-size:0.875rem;font-weight:700">⚠️ Documentation gaps found (<span id="gapCount">0</span>)</h3>
+            <span style="font-size:0.78rem;color:var(--ink3)">AI identified missing information</span>
+          </div>
+          <div id="gapList"></div>
+        </div>
+
+      </div>
+
+      <!-- ══ SOURCE SYSTEMS VIEW ══ -->
+      <div class="view" id="view-systems">
+        <div class="page-header">
+          <h1>🖥️ Source Systems</h1>
+          <p>Define every system in your architecture — databases, SaaS apps, APIs, data warehouses. Document what each system owns, its integration capabilities, and data formats.</p>
+        </div>
+        <div style="display:flex;gap:0.75rem;margin-bottom:1.25rem;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="openSystemModal()">+ Add source system</button>
+          <button class="btn btn-secondary" onclick="aiDetectSystems()">🧠 AI detect from docs</button>
+        </div>
+        <div class="ai-panel" id="systemsAiPanel" style="display:none">
+          <div class="ai-panel-icon">AI</div>
+          <div class="ai-panel-content">
+            <div class="ai-panel-label">AI detected systems</div>
+            <div class="ai-panel-text" id="systemsAiText"></div>
+          </div>
+        </div>
+        <div class="systems-grid" id="systemsGrid">
+          <div class="add-system-card" onclick="openSystemModal()">
+            <div class="add-icon">＋</div>
+            <p>Add source system</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ CANONICAL ENTITIES VIEW ══ -->
+      <div class="view" id="view-entities">
+        <div class="page-header">
+          <h1>📦 Canonical Entity Models</h1>
+          <p>Define your system of record for each core business entity. Specify fields, data types, quality rules, governance policies, and which system is the authoritative source.</p>
+        </div>
+        <div style="display:flex;gap:0.75rem;margin-bottom:1.25rem;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="openEntityModal()">+ Define entity</button>
+          <button class="btn btn-secondary" onclick="aiDetectEntities()">🧠 AI extract from docs</button>
+        </div>
+        <div class="ai-panel" id="entitiesAiPanel" style="display:none">
+          <div class="ai-panel-icon">AI</div>
+          <div class="ai-panel-content">
+            <div class="ai-panel-label">AI extracted entities</div>
+            <div class="ai-panel-text" id="entitiesAiText"></div>
+          </div>
+        </div>
+        <div class="entities-layout" id="entitiesLayout">
+          <div style="text-align:center;padding:3rem;color:var(--ink3);font-size:0.875rem;grid-column:1/-1">
+            No entities defined yet. Add one or let AI extract them from your documentation.
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ DOMAIN MAP VIEW ══ -->
+      <div class="view" id="view-domains">
+        <div class="page-header">
+          <h1>🗺️ Business Domain Map</h1>
+          <p>Map which business domains rely on which data entities. Define ownership, dependencies, and data flows between domains.</p>
+        </div>
+        <div style="display:flex;gap:0.75rem;margin-bottom:1.25rem">
+          <button class="btn btn-primary" onclick="openDomainModal()">+ Add domain</button>
+          <button class="btn btn-secondary" onclick="aiDetectDomains()">🧠 AI map from docs</button>
+        </div>
+        <div class="domain-grid" id="domainGrid">
+          <div style="text-align:center;padding:3rem;color:var(--ink3);font-size:0.875rem;grid-column:1/-1">
+            No domains defined yet. Add domains or let AI detect them from your documentation.
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ TOOLSET VIEW ══ -->
+      <div class="view" id="view-toolset">
+        <div class="page-header">
+          <h1>🛠️ Approved Toolset</h1>
+          <p>Define your company's approved tools, languages, cloud platforms, and data stack. FlowForge will generate integrations using only these approved tools — and flag when a better tool exists.</p>
+        </div>
+        <div style="display:flex;gap:0.75rem;margin-bottom:1.25rem">
+          <button class="btn btn-primary" onclick="openToolModal()">+ Add tool</button>
+          <button class="btn btn-secondary" onclick="loadDefaultTools()">Load industry standards</button>
+        </div>
+        <div class="toolset-categories" id="toolsetContent">
+          <div style="text-align:center;padding:3rem;color:var(--ink3);font-size:0.875rem">
+            No tools defined yet. Add tools or load industry-standard defaults.
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /page-content -->
+  </div><!-- /main-area -->
+</div><!-- /workspace -->
+
+<!-- ══ SYSTEM MODAL ══ -->
+<div class="modal-overlay" id="systemModal" onclick="closeModal('systemModal')">
+<div class="modal" onclick="event.stopPropagation()">
+  <div class="modal-header">
+    <h2 id="systemModalTitle">Add source system</h2>
+    <button class="modal-close" onclick="closeModal('systemModal')">✕</button>
+  </div>
+  <div class="modal-body">
+    <div class="ai-panel" id="systemAiHint" style="display:none">
+      <div class="ai-panel-icon">AI</div>
+      <div class="ai-panel-content">
+        <div class="ai-panel-label">AI suggestion</div>
+        <div class="ai-panel-text" id="systemAiHintText"></div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">System name *</label>
+        <input class="form-input" id="sys-name" placeholder="e.g. Salesforce CRM">
+      </div>
+      <div class="form-group">
+        <label class="form-label">System type *</label>
+        <select class="form-input form-select" id="sys-type">
+          <option value="">Select type...</option>
+          <option>CRM</option><option>ERP</option><option>Data Warehouse</option>
+          <option>Transactional Database</option><option>Event Streaming Platform</option>
+          <option>SaaS Application</option><option>Data Lake</option>
+          <option>API / Microservice</option><option>File System / S3</option>
+          <option>Message Queue</option><option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <textarea class="form-input form-textarea" id="sys-desc" placeholder="What does this system do? What business function does it serve?"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Technology / Platform</label>
+        <input class="form-input" id="sys-tech" placeholder="e.g. PostgreSQL 15, Salesforce Enterprise">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Owning team</label>
+        <input class="form-input" id="sys-owner" placeholder="e.g. Sales Operations">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Integration capabilities (select all that apply)</label>
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.35rem" id="capSelector">
+        <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;cursor:pointer"><input type="checkbox" value="REST API"> REST API</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;cursor:pointer"><input type="checkbox" value="GraphQL"> GraphQL</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;cursor:pointer"><input type="checkbox" value="Webhooks"> Webhooks</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;cursor:pointer"><input type="checkbox" value="CDC/Replication"> CDC / Replication</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;cursor:pointer"><input type="checkbox" value="Kafka/Events"> Kafka / Events</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;cursor:pointer"><input type="checkbox" value="Batch/File Export"> Batch / File Export</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;cursor:pointer"><input type="checkbox" value="JDBC/ODBC"> JDBC / ODBC</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;cursor:pointer"><input type="checkbox" value="Native Connector"> Native Connector</label>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Data formats supported</label>
+        <input class="form-input" id="sys-formats" placeholder="e.g. JSON, Avro, Parquet, CSV">
+      </div>
+      <div class="form-group">
+        <label class="form-label">SLA / availability</label>
+        <input class="form-input" id="sys-sla" placeholder="e.g. 99.9% uptime, 15min RPO">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Entities this system owns</label>
+      <input class="form-input" id="sys-entities" placeholder="e.g. Customer, Opportunity, Contact (comma separated)">
+      <div class="form-hint">Which canonical entities is this system the system of record for?</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes / constraints</label>
+      <textarea class="form-input form-textarea" id="sys-notes" style="min-height:80px" placeholder="Rate limits, access restrictions, known issues, migration notes..."></textarea>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-ghost" onclick="closeModal('systemModal')">Cancel</button>
+    <button class="btn btn-secondary" onclick="aiAutoFillSystem()">🧠 AI auto-fill</button>
+    <button class="btn btn-primary" onclick="saveSystem()">Save system</button>
+  </div>
+</div>
+</div>
+
+<!-- ══ ENTITY MODAL ══ -->
+<div class="modal-overlay" id="entityModal" onclick="closeModal('entityModal')">
+<div class="modal" onclick="event.stopPropagation()" style="max-width:780px">
+  <div class="modal-header">
+    <h2 id="entityModalTitle">Define canonical entity</h2>
+    <button class="modal-close" onclick="closeModal('entityModal')">✕</button>
+  </div>
+  <div class="modal-body">
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Entity name *</label>
+        <input class="form-input mono" id="ent-name" placeholder="e.g. customer">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Display name</label>
+        <input class="form-input" id="ent-display" placeholder="e.g. Customer">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">System of record *</label>
+        <input class="form-input" id="ent-sor" placeholder="e.g. Salesforce CRM">
+        <div class="form-hint">Which system is the authoritative source for this entity?</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Data owner</label>
+        <input class="form-input" id="ent-owner" placeholder="e.g. Sales Operations team">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Business description</label>
+      <textarea class="form-input form-textarea" id="ent-desc" placeholder="What does this entity represent in business terms? When is it created, updated, deleted?"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Sensitivity</label>
+        <select class="form-input form-select" id="ent-sensitivity">
+          <option value="internal">Internal</option>
+          <option value="public">Public</option>
+          <option value="confidential">Confidential</option>
+          <option value="restricted">Restricted (PII/PCI/HIPAA)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Business domain</label>
+        <input class="form-input" id="ent-domain" placeholder="e.g. Sales, Finance, Operations">
+      </div>
+    </div>
+
+    <!-- Fields builder -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem">
+      <label class="form-label" style="margin:0">Fields</label>
+      <div style="display:flex;gap:0.5rem">
+        <button class="btn btn-ghost btn-sm" onclick="aiGenerateFields()">🧠 AI generate fields</button>
+        <button class="btn btn-secondary btn-sm" onclick="addFieldRow()">+ Add field</button>
+      </div>
+    </div>
+    <div id="fieldsBuilder" style="border:1px solid var(--wire);border-radius:10px;overflow:hidden;margin-bottom:1rem">
+      <div style="display:grid;grid-template-columns:180px 120px 1fr 140px 32px;gap:0;background:var(--surface);padding:0.5rem 0.875rem;border-bottom:1px solid var(--wire)">
+        <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;color:var(--ink3)">Field name</div>
+        <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;color:var(--ink3)">Type</div>
+        <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;color:var(--ink3)">Description / DQ rules</div>
+        <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;color:var(--ink3)">Flags</div>
+        <div></div>
+      </div>
+      <div id="fieldRows"></div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Data quality rules</label>
+      <textarea class="form-input" id="ent-dq" style="min-height:70px" placeholder="e.g. Email must be valid format. Phone required for B2C customers. created_at cannot be null..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Governance notes</label>
+      <textarea class="form-input" id="ent-governance" style="min-height:70px" placeholder="Retention policy, access controls, compliance requirements, masking rules..."></textarea>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-ghost" onclick="closeModal('entityModal')">Cancel</button>
+    <button class="btn btn-primary" onclick="saveEntity()">Save entity</button>
+  </div>
+</div>
+</div>
+
+<!-- ══ DOMAIN MODAL ══ -->
+<div class="modal-overlay" id="domainModal" onclick="closeModal('domainModal')">
+<div class="modal" onclick="event.stopPropagation()">
+  <div class="modal-header">
+    <h2>Add business domain</h2>
+    <button class="modal-close" onclick="closeModal('domainModal')">✕</button>
+  </div>
+  <div class="modal-body">
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Domain name *</label>
+        <input class="form-input" id="dom-name" placeholder="e.g. Sales & Revenue">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Domain owner</label>
+        <input class="form-input" id="dom-owner" placeholder="e.g. VP of Sales">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <textarea class="form-input form-textarea" id="dom-desc" placeholder="What business functions does this domain cover?"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Entities this domain consumes</label>
+      <input class="form-input" id="dom-entities" placeholder="e.g. Customer, Opportunity, Contact (comma separated)">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Systems this domain uses</label>
+      <input class="form-input" id="dom-systems" placeholder="e.g. Salesforce, HubSpot (comma separated)">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Data dependencies</label>
+      <textarea class="form-input" id="dom-deps" style="min-height:70px" placeholder="What data does this domain depend on from other domains?"></textarea>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-ghost" onclick="closeModal('domainModal')">Cancel</button>
+    <button class="btn btn-primary" onclick="saveDomain()">Save domain</button>
+  </div>
+</div>
+</div>
+
+<!-- ══ TOOL MODAL ══ -->
+<div class="modal-overlay" id="toolModal" onclick="closeModal('toolModal')">
+<div class="modal" onclick="event.stopPropagation()">
+  <div class="modal-header">
+    <h2>Add approved tool</h2>
+    <button class="modal-close" onclick="closeModal('toolModal')">✕</button>
+  </div>
+  <div class="modal-body">
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Tool name *</label>
+        <input class="form-input" id="tool-name" placeholder="e.g. dbt Cloud">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Category *</label>
+        <select class="form-input form-select" id="tool-category">
+          <option value="">Select category...</option>
+          <option>Transformation</option><option>Orchestration</option>
+          <option>Ingestion / ELT</option><option>Streaming</option>
+          <option>Data Warehouse</option><option>Data Lake</option>
+          <option>Cloud Platform</option><option>Programming Language</option>
+          <option>Monitoring</option><option>Version Control</option>
+          <option>CI/CD</option><option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Approval status</label>
+        <select class="form-input form-select" id="tool-status">
+          <option value="approved">✅ Approved</option>
+          <option value="preferred">⭐ Preferred</option>
+          <option value="restricted">⚠️ Restricted</option>
+          <option value="evaluating">🔍 Evaluating</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Approx. monthly cost</label>
+        <input class="form-input" id="tool-cost" placeholder="e.g. $500/mo, Free, Usage-based">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Use case / purpose</label>
+      <textarea class="form-input" id="tool-usecase" style="min-height:80px" placeholder="What is this tool approved for? What problems does it solve in your stack?"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Constraints / notes</label>
+      <input class="form-input" id="tool-notes" placeholder="e.g. Only for batch workloads, not real-time. Max 100GB per run.">
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-ghost" onclick="closeModal('toolModal')">Cancel</button>
+    <button class="btn btn-primary" onclick="saveTool()">Save tool</button>
+  </div>
+</div>
+</div>
+
+<script>
+// ─── CONFIG & STATE ───────────────────────────────────────────────
+const API = 'https://flowforge-backend-1b72.onrender.com';
+const ANTHROPIC_API = 'https://api.anthropic.com/v1/messages';
+
+let currentUser = null;
+let ws = {
+  documents: [],
+  gaps: [],
+  systems: [],
+  entities: [],
+  domains: [],
+  tools: [],
+  extractedKnowledge: null
+};
+
+// ─── INIT ─────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  const token = localStorage.getItem('ff_token');
+  if (!token) { window.location.href = '/'; return; }
+  try {
+    const res = await apiFetch('/api/auth/me');
+    currentUser = res.user;
+    document.getElementById('sidebarAvatar').textContent = (currentUser.name || currentUser.email).charAt(0).toUpperCase();
+    document.getElementById('sidebarName').textContent = currentUser.name || currentUser.email.split('@')[0];
+    document.getElementById('wsName').textContent = (currentUser.name || 'My') + "'s Workspace";
+    loadWorkspace();
+    document.getElementById('pageLoader').style.display = 'none';
+    document.getElementById('workspaceShell').style.display = 'block';
+  } catch {
+    localStorage.removeItem('ff_token');
+    window.location.href = '/';
+  }
+});
+
+// ─── PERSISTENCE ──────────────────────────────────────────────────
+function saveWorkspace() {
+  if (!currentUser) return;
+  localStorage.setItem('ff_ws_' + currentUser._id, JSON.stringify(ws));
+  updateCompleteness();
+  updateBadges();
+}
+
+function loadWorkspace() {
+  if (!currentUser) return;
+  const saved = localStorage.getItem('ff_ws_' + currentUser._id);
+  if (saved) ws = { ...ws, ...JSON.parse(saved) };
+  renderAll();
+  updateCompleteness();
+  updateBadges();
+}
+
+function renderAll() {
+  renderDocList();
+  renderSystems();
+  renderEntities();
+  renderDomains();
+  renderToolset();
+}
+
+// ─── VIEWS ────────────────────────────────────────────────────────
+const viewTitles = { intake:'Intake & Process', systems:'Source Systems', entities:'Canonical Entities', domains:'Domain Map', toolset:'Approved Toolset' };
+
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  document.getElementById('nav-' + name)?.classList.add('active');
+  document.getElementById('topbarSection').textContent = viewTitles[name] || name;
+}
+
+// ─── COMPLETENESS ─────────────────────────────────────────────────
+function updateCompleteness() {
+  const scores = {
+    intake:   Math.min(100, ws.documents.length * 20),
+    systems:  Math.min(100, ws.systems.length * 25),
+    entities: Math.min(100, ws.entities.length * 20),
+    domains:  Math.min(100, ws.domains.length * 25),
+    toolset:  Math.min(100, ws.tools.length * 15),
+  };
+  const overall = Math.round(Object.values(scores).reduce((a,b) => a+b, 0) / 5);
+  document.getElementById('overallPct').textContent = overall + '%';
+  document.getElementById('completenessNum').textContent = overall + '%';
+  const bar = document.getElementById('overallBar');
+  bar.style.width = overall + '%';
+  bar.style.background = overall < 30 ? 'var(--red)' : overall < 70 ? 'var(--amber)' : 'var(--green)';
+  Object.entries(scores).forEach(([key, val]) => {
+    const seg = document.getElementById('seg-' + key);
+    if (seg) seg.style.width = val + '%';
+    const pct = document.getElementById('seg-' + key + '-pct');
+    if (pct) pct.textContent = val + '%';
+  });
+}
+
+function updateBadges() {
+  document.getElementById('badge-intake').textContent = ws.documents.length;
+  document.getElementById('badge-systems').textContent = ws.systems.length;
+  document.getElementById('badge-entities').textContent = ws.entities.length;
+  document.getElementById('badge-domains').textContent = ws.domains.length;
+  document.getElementById('badge-toolset').textContent = ws.tools.length;
+}
+
+// ─── API HELPER ───────────────────────────────────────────────────
+async function apiFetch(path, options = {}) {
+  const headers = { 'Content-Type': 'application/json' };
+  const token = localStorage.getItem('ff_token');
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const res = await fetch(API + path, { ...options, headers: { ...headers, ...options.headers } });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
+
+async function callClaude(prompt, maxTokens = 1500) {
+  const res = await fetch(ANTHROPIC_API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: maxTokens,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  const data = await res.json();
+  const text = data.content?.map(b => b.text || '').join('') || '';
+  try { return JSON.parse(text.replace(/```json|```/g, '').trim()); }
+  catch { return text; }
+}
+
+// ─── INTAKE: FILE HANDLING ────────────────────────────────────────
+function handleDragOver(e) { e.preventDefault(); document.getElementById('dropZone').classList.add('drag'); }
+function handleDragLeave() { document.getElementById('dropZone').classList.remove('drag'); }
+function handleFileDrop(e) { e.preventDefault(); document.getElementById('dropZone').classList.remove('drag'); processFiles(e.dataTransfer.files); }
+function handleFileSelect(e) { processFiles(e.target.files); }
+
+function processFiles(files) {
+  [...files].forEach(file => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      addDocument({ name: file.name, content: e.target.result, type: file.type || 'text', source: 'upload', size: file.size });
+    };
+    reader.readAsText(file);
+  });
+}
+
+function addPastedDoc() {
+  const content = document.getElementById('pasteContent').value.trim();
+  const label = document.getElementById('pasteLabel').value.trim() || 'Pasted document ' + (ws.documents.length + 1);
+  if (!content) { showToast('Please paste some content first', 'warn'); return; }
+  addDocument({ name: label, content, type: 'text/plain', source: 'paste' });
+  document.getElementById('pasteContent').value = '';
+  document.getElementById('pasteLabel').value = '';
+}
+
+function addDocument(doc) {
+  doc.id = Date.now() + Math.random();
+  doc.addedAt = new Date().toISOString();
+  doc.status = 'pending';
+  ws.documents.push(doc);
+  saveWorkspace();
+  renderDocList();
+  showToast('Document added: ' + doc.name, 'success');
+}
+
+function removeDocument(id) {
+  ws.documents = ws.documents.filter(d => d.id !== id);
+  saveWorkspace();
+  renderDocList();
+}
+
+function renderDocList() {
+  const section = document.getElementById('docListSection');
+  const list = document.getElementById('docList');
+  if (ws.documents.length === 0) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  document.getElementById('docCount').textContent = ws.documents.length;
+  const icons = { 'text/plain':'📄', 'application/json':'📋', 'text/sql':'🗄️', 'text/csv':'📊', 'upload':'📁', 'paste':'📋' };
+  list.innerHTML = ws.documents.map(doc => `
+    <div class="doc-item">
+      <div class="doc-icon">${icons[doc.type] || icons[doc.source] || '📄'}</div>
+      <div class="doc-info">
+        <div class="doc-name">${escHtml(doc.name)}</div>
+        <div class="doc-meta">${doc.source === 'upload' ? 'Uploaded' : 'Pasted'} · ${(doc.content || '').length.toLocaleString()} chars · ${doc.status === 'analyzed' ? '<span style="color:var(--green)">✓ Analyzed</span>' : '<span style="color:var(--amber)">Pending analysis</span>'}</div>
+      </div>
+      <div class="doc-status">
+        ${doc.status === 'analyzed' ? '<span class="badge badge-green">✓ Done</span>' : '<span class="badge badge-gray">Pending</span>'}
+      </div>
+      <button class="doc-remove" onclick="removeDocument(${doc.id})" title="Remove">✕</button>
+    </div>`).join('');
+}
+
+// ─── INTAKE: AI ANALYSIS ──────────────────────────────────────────
+async function analyzeAllDocs() {
+  if (ws.documents.length === 0) { showToast('Add documents first', 'warn'); return; }
+  const bar = document.getElementById('processingBar');
+  bar.classList.add('show');
+  const steps = [
+    'Reading and parsing all documents...',
+    'Identifying business processes and workflows...',
+    'Extracting source systems and integrations...',
+    'Identifying data entities and relationships...',
+    'Detecting business domains and ownership...',
+    'Identifying documentation gaps...',
+    'Generating structured knowledge base...'
+  ];
+  const stepsEl = document.getElementById('processingSteps');
+  stepsEl.innerHTML = steps.map((s, i) => `
+    <div class="proc-step ${i===0?'active':'pending'}" id="proc-step-${i}">
+      <div class="proc-icon ${i===0?'active':'pending'}" id="proc-icon-${i}">${i===0?'<div style="width:10px;height:10px;border:1.5px solid var(--accent-glow);border-top-color:var(--accent);border-radius:50%" class="spin"></div>':'•'}</div>
+      ${s}
+    </div>`).join('');
+
+  // Animate steps
+  let cur = 0;
+  const stepInterval = setInterval(() => {
+    if (cur > 0) {
+      document.getElementById('proc-step-' + (cur-1)).className = 'proc-step done';
+      document.getElementById('proc-icon-' + (cur-1)).className = 'proc-icon done';
+      document.getElementById('proc-icon-' + (cur-1)).innerHTML = '✓';
+    }
+    if (cur < steps.length) {
+      document.getElementById('proc-step-' + cur).className = 'proc-step active';
+      document.getElementById('proc-icon-' + cur).className = 'proc-icon active';
+      document.getElementById('proc-icon-' + cur).innerHTML = '<div style="width:10px;height:10px;border:1.5px solid var(--accent-glow);border-top-color:var(--accent);border-radius:50%" class="spin"></div>';
+    }
+    cur++;
+    if (cur > steps.length) clearInterval(stepInterval);
+  }, 1800);
+
+  try {
+    const allContent = ws.documents.map(d => `=== ${d.name} ===\n${(d.content || '').substring(0, 1500)}`).join('\n\n');
+    const prompt = `You are a senior data architect and business analyst. Analyze the following business documentation and extract structured knowledge.
+
+Documentation:
+"""
+${allContent.substring(0, 5000)}
+"""
+
+Respond ONLY with valid JSON (no markdown):
+{
+  "summary": "2-3 sentence overview of the business and its data landscape",
+  "systems_detected": [
+    {"name": "system name", "type": "CRM/Database/SaaS/etc", "description": "what it does", "capabilities": ["REST API", "Webhooks"], "entities_owned": ["entity1"]}
+  ],
+  "entities_detected": [
+    {"name": "entity_name", "display": "Display Name", "description": "business description", "system_of_record": "system name", "key_fields": ["field1", "field2"]}
+  ],
+  "domains_detected": [
+    {"name": "domain name", "owner": "team or role", "entities": ["entity1"], "systems": ["system1"]}
+  ],
+  "gaps": [
+    {"area": "systems/entities/domains/toolset", "title": "Gap title", "description": "What is missing and why it matters", "priority": "high/medium/low"}
+  ]
+}`;
+
+    const result = await callClaude(prompt, 2000);
+    ws.extractedKnowledge = result;
+    ws.documents.forEach(d => d.status = 'analyzed');
+
+    // Auto-populate from extraction if empty
+    if (typeof result === 'object') {
+      if (ws.systems.length === 0 && result.systems_detected) {
+        result.systems_detected.forEach(s => ws.systems.push({
+          id: Date.now() + Math.random(), name: s.name, type: s.type,
+          description: s.description, capabilities: s.capabilities || [],
+          entitiesOwned: (s.entities_owned || []).join(', '), owner: '', tech: '', formats: '', sla: '', notes: ''
+        }));
+      }
+      if (ws.entities.length === 0 && result.entities_detected) {
+        result.entities_detected.forEach(e => ws.entities.push({
+          id: Date.now() + Math.random(), name: e.name, displayName: e.display,
+          description: e.description, systemOfRecord: e.system_of_record,
+          fields: (e.key_fields || []).map(f => ({ name: f, type: 'VARCHAR', description: '', isPk: false, isFk: false, dqRules: '' })),
+          owner: '', sensitivity: 'internal', domain: '', dqRules: '', governance: ''
+        }));
+      }
+      if (ws.domains.length === 0 && result.domains_detected) {
+        result.domains_detected.forEach(d => ws.domains.push({
+          id: Date.now() + Math.random(), name: d.name, owner: d.owner || '',
+          description: '', entities: (d.entities || []).join(', '), systems: (d.systems || []).join(', '), deps: ''
+        }));
+      }
+      if (result.gaps) {
+        ws.gaps = result.gaps;
+        renderGaps();
+      }
+    }
+
+    saveWorkspace();
+    renderAll();
+    clearInterval(stepInterval);
+    setTimeout(() => {
+      bar.classList.remove('show');
+      showToast('Analysis complete! Systems, entities and domains extracted.', 'success');
+    }, 1000);
+
+  } catch (err) {
+    console.error(err);
+    clearInterval(stepInterval);
+    bar.classList.remove('show');
+    showToast('Analysis failed. Please try again.', 'error');
+  }
+}
+
+function renderGaps() {
+  const section = document.getElementById('gapsSection');
+  if (!ws.gaps || ws.gaps.length === 0) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  document.getElementById('gapCount').textContent = ws.gaps.length;
+  const priorities = { high: 'badge-red', medium: 'badge-amber', low: 'badge-gray' };
+  const viewMap = { systems: 'systems', entities: 'entities', domains: 'domains', toolset: 'toolset' };
+  document.getElementById('gapList').innerHTML = ws.gaps.map(g => `
+    <div class="gap-item">
+      <div class="gap-icon">⚠️</div>
+      <div class="gap-info">
+        <div class="gap-title">${escHtml(g.title)} <span class="badge ${priorities[g.priority] || 'badge-gray'}">${g.priority}</span></div>
+        <div class="gap-desc">${escHtml(g.description)}</div>
+        ${viewMap[g.area] ? `<div class="gap-action"><button class="btn btn-secondary btn-sm" onclick="showView('${viewMap[g.area]}')">Go to ${g.area} →</button></div>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+// ─── SYSTEMS ──────────────────────────────────────────────────────
+function openSystemModal(sys) {
+  ['sys-name','sys-type','sys-desc','sys-tech','sys-owner','sys-formats','sys-sla','sys-entities','sys-notes'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = sys ? (sys[id.replace('sys-','')] || '') : '';
+  });
+  document.querySelectorAll('#capSelector input').forEach(cb => {
+    cb.checked = sys ? (sys.capabilities || []).includes(cb.value) : false;
+  });
+  document.getElementById('systemModal')._editing = sys?.id || null;
+  openModal('systemModal');
+}
+
+function saveSystem() {
+  const name = document.getElementById('sys-name').value.trim();
+  if (!name) { showToast('System name is required', 'warn'); return; }
+  const caps = [...document.querySelectorAll('#capSelector input:checked')].map(cb => cb.value);
+  const sys = {
+    id: document.getElementById('systemModal')._editing || (Date.now() + Math.random()),
+    name, type: document.getElementById('sys-type').value,
+    description: document.getElementById('sys-desc').value,
+    tech: document.getElementById('sys-tech').value,
+    owner: document.getElementById('sys-owner').value,
+    capabilities: caps,
+    formats: document.getElementById('sys-formats').value,
+    sla: document.getElementById('sys-sla').value,
+    entitiesOwned: document.getElementById('sys-entities').value,
+    notes: document.getElementById('sys-notes').value,
+  };
+  const idx = ws.systems.findIndex(s => s.id === sys.id);
+  if (idx >= 0) ws.systems[idx] = sys; else ws.systems.push(sys);
+  saveWorkspace(); renderSystems(); closeModal('systemModal');
+  showToast('System saved: ' + name, 'success');
+}
+
+async function aiDetectSystems() {
+  if (ws.documents.length === 0) { showToast('Add documentation first so AI can detect systems', 'warn'); return; }
+  const panel = document.getElementById('systemsAiPanel');
+  panel.style.display = 'flex';
+  document.getElementById('systemsAiText').textContent = 'Analyzing documentation...';
+  const content = ws.documents.map(d => d.content || '').join('\n\n').substring(0, 4000);
+  const result = await callClaude(`From this documentation, list all source systems you can identify. Return JSON: {"systems": [{"name": "...", "type": "...", "description": "...", "capabilities": []}]}\n\n${content}`);
+  if (typeof result === 'object' && result.systems) {
+    result.systems.forEach(s => { if (!ws.systems.find(x => x.name === s.name)) ws.systems.push({ id: Date.now()+Math.random(), ...s, capabilities: s.capabilities||[], owner:'', tech:'', formats:'', sla:'', entitiesOwned:'', notes:'' }); });
+    saveWorkspace(); renderSystems();
+    document.getElementById('systemsAiText').textContent = `Detected ${result.systems.length} systems from your documentation. Review and edit each one.`;
+  }
+}
+
+async function aiAutoFillSystem() {
+  const name = document.getElementById('sys-name').value.trim();
+  if (!name) { showToast('Enter a system name first', 'warn'); return; }
+  const hint = document.getElementById('systemAiHint');
+  const hintText = document.getElementById('systemAiHintText');
+  hint.style.display = 'flex'; hintText.textContent = 'Looking up ' + name + '...';
+  const result = await callClaude(`You are a data integration expert. Provide details about "${name}" as a data source system. Return JSON: {"type":"...","description":"...","capabilities":["REST API","Webhooks","etc"],"formats":"JSON, CSV","notes":"known rate limits, constraints"}`);
+  if (typeof result === 'object') {
+    if (result.type) document.getElementById('sys-type').value = result.type;
+    if (result.description) document.getElementById('sys-desc').value = result.description;
+    if (result.formats) document.getElementById('sys-formats').value = result.formats;
+    if (result.notes) document.getElementById('sys-notes').value = result.notes;
+    if (result.capabilities) document.querySelectorAll('#capSelector input').forEach(cb => { cb.checked = result.capabilities.some(c => cb.value.toLowerCase().includes(c.toLowerCase()) || c.toLowerCase().includes(cb.value.toLowerCase())); });
+    hintText.textContent = 'Auto-filled from AI knowledge of ' + name + '. Review and adjust as needed.';
+  }
+}
+
+function renderSystems() {
+  const grid = document.getElementById('systemsGrid');
+  const capClass = { 'REST API':'cap-api', 'GraphQL':'cap-api', 'Webhooks':'cap-webhook', 'CDC/Replication':'cap-replication', 'Kafka/Events':'cap-event', 'Batch/File Export':'cap-batch', 'JDBC/ODBC':'cap-batch', 'Native Connector':'cap-replication' };
+  const typeIcons = { CRM:'🤝', ERP:'🏭', 'Data Warehouse':'🏛️', 'Transactional Database':'🗄️', 'Event Streaming Platform':'⚡', 'SaaS Application':'☁️', 'Data Lake':'🏞️', 'API / Microservice':'🔌', 'File System / S3':'📁', 'Message Queue':'📬' };
+  const typeBg = { CRM:'#dbeafe', ERP:'#dcfce7', 'Data Warehouse':'#ede9fe', 'Transactional Database':'#fef3c7', 'Event Streaming Platform':'#fce7f3', 'SaaS Application':'#e0f2fe', 'Data Lake':'#d1fae5' };
+  grid.innerHTML = ws.systems.map(s => `
+    <div class="system-card" onclick="openSystemModal(ws.systems.find(x=>x.id==${s.id}))">
+      <div class="system-card-header">
+        <div class="system-logo" style="background:${typeBg[s.type]||'#f0f0f8'}">${typeIcons[s.type]||'🖥️'}</div>
+        <div>
+          <div class="system-name">${escHtml(s.name)}</div>
+          <div class="system-type">${escHtml(s.type||'Unknown type')}</div>
+        </div>
+        <span class="badge badge-green" style="margin-left:auto">✓</span>
+      </div>
+      <div class="system-body">
+        <div class="system-desc">${escHtml(s.description||'No description yet')}</div>
+        <div class="system-caps">
+          ${(s.capabilities||[]).map(c => `<span class="cap-tag ${capClass[c]||'cap-batch'}">${escHtml(c)}</span>`).join('')}
+        </div>
+      </div>
+      <div class="system-footer">
+        <span class="system-owner">👤 ${escHtml(s.owner||'No owner set')}</span>
+        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();deleteSystem(${s.id})">Delete</button>
+      </div>
+    </div>`).join('') + `<div class="add-system-card" onclick="openSystemModal()"><div class="add-icon">＋</div><p>Add source system</p></div>`;
+}
+
+function deleteSystem(id) {
+  if (!confirm('Delete this system?')) return;
+  ws.systems = ws.systems.filter(s => s.id !== id);
+  saveWorkspace(); renderSystems();
+}
+
+// ─── ENTITIES ─────────────────────────────────────────────────────
+let currentEntityId = null;
+
+function openEntityModal(ent) {
+  ['ent-name','ent-display','ent-sor','ent-owner','ent-desc','ent-domain','ent-dq','ent-governance'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = ent ? (ent[id.replace('ent-','')] || '') : '';
+  });
+  if (ent) document.getElementById('ent-sensitivity').value = ent.sensitivity || 'internal';
+  document.getElementById('fieldRows').innerHTML = '';
+  if (ent?.fields) ent.fields.forEach(f => addFieldRow(f));
+  document.getElementById('entityModal')._editing = ent?.id || null;
+  openModal('entityModal');
+}
+
+function addFieldRow(field = {}) {
+  const row = document.createElement('div');
+  row.style.cssText = 'display:grid;grid-template-columns:180px 120px 1fr 140px 32px;gap:0;border-bottom:1px solid var(--wire2);align-items:center';
+  row.innerHTML = `
+    <div style="padding:0.4rem 0.875rem;border-right:1px solid var(--wire2)"><input class="form-input" style="padding:0.3rem 0.5rem;font-family:JetBrains Mono,monospace;font-size:0.75rem" value="${escHtml(field.name||'')}" placeholder="field_name"></div>
+    <div style="padding:0.4rem 0.875rem;border-right:1px solid var(--wire2)">
+      <select class="form-input form-select" style="padding:0.3rem 0.5rem;font-size:0.75rem">
+        ${['VARCHAR','INT','BIGINT','DECIMAL','BOOLEAN','TIMESTAMP','DATE','TEXT','UUID','JSONB','ARRAY'].map(t => `<option ${field.type===t?'selected':''}>${t}</option>`).join('')}
+      </select>
+    </div>
+    <div style="padding:0.4rem 0.875rem;border-right:1px solid var(--wire2)"><input class="form-input" style="padding:0.3rem 0.5rem;font-size:0.75rem" value="${escHtml(field.description||'')}" placeholder="Business description / DQ rules"></div>
+    <div style="padding:0.4rem 0.875rem;border-right:1px solid var(--wire2);display:flex;gap:0.5rem;align-items:center">
+      <label style="display:flex;align-items:center;gap:3px;font-size:0.72rem;cursor:pointer"><input type="checkbox" ${field.isPk?'checked':''}> PK</label>
+      <label style="display:flex;align-items:center;gap:3px;font-size:0.72rem;cursor:pointer"><input type="checkbox" ${field.isFk?'checked':''}> FK</label>
+      <label style="display:flex;align-items:center;gap:3px;font-size:0.72rem;cursor:pointer"><input type="checkbox" ${field.nullable!==false?'checked':''}> Null</label>
+    </div>
+    <div style="padding:0.4rem 0.35rem;text-align:center"><button onclick="this.closest('div[style]').remove()" style="background:none;border:none;color:var(--ink3);cursor:pointer;font-size:0.9rem">✕</button></div>`;
+  document.getElementById('fieldRows').appendChild(row);
+}
+
+function getFieldRows() {
+  return [...document.getElementById('fieldRows').children].map(row => {
+    const inputs = row.querySelectorAll('input[type=text], input:not([type]), select');
+    const checks = row.querySelectorAll('input[type=checkbox]');
+    return { name: inputs[0]?.value||'', type: inputs[1]?.value||'VARCHAR', description: inputs[2]?.value||'', isPk: checks[0]?.checked||false, isFk: checks[1]?.checked||false, nullable: checks[2]?.checked!==false };
+  }).filter(f => f.name);
+}
+
+async function aiGenerateFields() {
+  const name = document.getElementById('ent-name').value.trim();
+  const desc = document.getElementById('ent-desc').value.trim();
+  const sor = document.getElementById('ent-sor').value.trim();
+  if (!name) { showToast('Enter entity name first', 'warn'); return; }
+  showToast('AI generating fields...', 'success');
+  const result = await callClaude(`Generate typical database fields for a "${name}" entity${sor ? ' from ' + sor : ''}${desc ? '. Context: ' + desc : ''}. Return JSON: {"fields": [{"name": "field_name", "type": "VARCHAR/INT/etc", "description": "business meaning", "isPk": false, "isFk": false, "nullable": true}]}`);
+  if (typeof result === 'object' && result.fields) {
+    document.getElementById('fieldRows').innerHTML = '';
+    result.fields.forEach(f => addFieldRow(f));
+    showToast('Fields generated!', 'success');
+  }
+}
+
+function saveEntity() {
+  const name = document.getElementById('ent-name').value.trim();
+  if (!name) { showToast('Entity name is required', 'warn'); return; }
+  const ent = {
+    id: document.getElementById('entityModal')._editing || (Date.now() + Math.random()),
+    name, displayName: document.getElementById('ent-display').value,
+    description: document.getElementById('ent-desc').value,
+    systemOfRecord: document.getElementById('ent-sor').value,
+    owner: document.getElementById('ent-owner').value,
+    sensitivity: document.getElementById('ent-sensitivity').value,
+    domain: document.getElementById('ent-domain').value,
+    dqRules: document.getElementById('ent-dq').value,
+    governance: document.getElementById('ent-governance').value,
+    fields: getFieldRows(),
+  };
+  const idx = ws.entities.findIndex(e => e.id === ent.id);
+  if (idx >= 0) ws.entities[idx] = ent; else ws.entities.push(ent);
+  saveWorkspace(); renderEntities(); closeModal('entityModal');
+  showToast('Entity saved: ' + name, 'success');
+}
+
+async function aiDetectEntities() {
+  if (ws.documents.length === 0) { showToast('Add documentation first', 'warn'); return; }
+  const panel = document.getElementById('entitiesAiPanel');
+  panel.style.display = 'flex';
+  document.getElementById('entitiesAiText').textContent = 'Extracting entities from documentation...';
+  const content = ws.documents.map(d => d.content || '').join('\n\n').substring(0, 4000);
+  const result = await callClaude(`From this documentation, identify all core business entities/data objects. Return JSON: {"entities": [{"name": "entity_name", "displayName": "Display", "description": "business meaning", "systemOfRecord": "system name", "fields": [{"name": "f", "type": "VARCHAR", "description": "d", "isPk": false, "isFk": false, "nullable": true}]}]}\n\n${content}`);
+  if (typeof result === 'object' && result.entities) {
+    result.entities.forEach(e => { if (!ws.entities.find(x => x.name === e.name)) ws.entities.push({ id: Date.now()+Math.random(), ...e, owner:'', sensitivity:'internal', domain:'', dqRules:'', governance:'' }); });
+    saveWorkspace(); renderEntities();
+    document.getElementById('entitiesAiText').textContent = `Extracted ${result.entities.length} entities. Click each to review and complete the details.`;
+  }
+}
+
+function renderEntities() {
+  const layout = document.getElementById('entitiesLayout');
+  if (ws.entities.length === 0) {
+    layout.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--ink3);font-size:0.875rem;grid-column:1/-1">No entities defined yet. Add one or let AI extract them from your documentation.</div>';
+    return;
+  }
+  const sensColor = { public:'badge-green', internal:'badge-blue', confidential:'badge-amber', restricted:'badge-red' };
+  layout.innerHTML = `
+    <div class="entities-list-panel">
+      <div class="entities-list-header">
+        <h3>Entities (${ws.entities.length})</h3>
+        <button class="btn btn-primary btn-sm" onclick="openEntityModal()">+ Add</button>
+      </div>
+      ${ws.entities.map(e => `
+        <div class="entity-list-item ${currentEntityId===e.id?'active':''}" onclick="showEntityDetail(${e.id})">
+          <div class="entity-list-dot"></div>
+          <div class="entity-list-name">${escHtml(e.name)}</div>
+          <div class="entity-list-count">${(e.fields||[]).length} fields</div>
+        </div>`).join('')}
+    </div>
+    <div class="entity-detail-panel" id="entityDetailPanel">
+      ${currentEntityId ? renderEntityDetail(ws.entities.find(e => e.id === currentEntityId)) : '<div style="text-align:center;padding:3rem;color:var(--ink3);font-size:0.875rem;background:var(--bg);border:1px solid var(--wire);border-radius:12px">Select an entity to view details</div>'}
+    </div>`;
+}
+
+function showEntityDetail(id) {
+  currentEntityId = id;
+  renderEntities();
+}
+
+function renderEntityDetail(e) {
+  if (!e) return '';
+  const sensColor = { public:'badge-green', internal:'badge-blue', confidential:'badge-amber', restricted:'badge-red' };
+  const dqRules = (e.dqRules || '').split('\n').filter(Boolean);
+  return `
+    <div class="entity-detail-header">
+      <div class="entity-detail-name">${escHtml(e.name)}</div>
+      <div style="font-size:0.85rem;color:var(--ink3)">${escHtml(e.displayName||'')}</div>
+      <div class="entity-detail-meta">
+        <span class="badge ${sensColor[e.sensitivity]||'badge-blue'}">${e.sensitivity||'internal'}</span>
+        <span class="badge badge-gray">📦 ${escHtml(e.systemOfRecord||'No SOR set')}</span>
+        <span class="badge badge-gray">👤 ${escHtml(e.owner||'No owner')}</span>
+        ${e.domain ? `<span class="badge badge-purple">🗺️ ${escHtml(e.domain)}</span>` : ''}
+      </div>
+      ${e.description ? `<p style="font-size:0.825rem;color:var(--ink2);margin-top:0.75rem;max-width:none">${escHtml(e.description)}</p>` : ''}
+      <div style="margin-top:1rem;display:flex;gap:0.5rem">
+        <button class="btn btn-secondary btn-sm" onclick="openEntityModal(ws.entities.find(x=>x.id==${e.id}))">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteEntity(${e.id})">Delete</button>
+      </div>
+    </div>
+    <div class="fields-section">
+      <div class="fields-section-header">
+        <span class="card-title">Fields (${(e.fields||[]).length})</span>
+        <span class="badge badge-gray">${(e.fields||[]).filter(f=>f.isPk).length} PK · ${(e.fields||[]).filter(f=>f.isFk).length} FK</span>
+      </div>
+      <table class="fields-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Description</th><th>Rules</th></tr></thead>
+        <tbody>
+          ${(e.fields||[]).map(f => `
+            <tr>
+              <td><span class="field-name-cell">${escHtml(f.name)}</span>${f.isPk?'<span class="field-pk">PK</span>':''}${f.isFk?'<span class="field-fk">FK</span>':''}</td>
+              <td><span class="field-type-cell">${escHtml(f.type||'VARCHAR')}</span></td>
+              <td style="color:var(--ink2)">${escHtml(f.description||'—')}</td>
+              <td>${f.nullable===false?'<span class="dq-rule">NOT NULL</span>':''}${f.isPk?'<span class="dq-rule">UNIQUE</span>':''}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    ${e.dqRules ? `
+    <div class="card">
+      <div class="card-header"><span class="card-title">Data quality rules</span></div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:0.4rem">
+        ${dqRules.map(r => `<div style="font-size:0.82rem;padding:0.4rem 0.75rem;background:var(--green-bg);border-radius:6px;color:var(--ink2)">✓ ${escHtml(r)}</div>`).join('')}
+      </div>
+    </div>` : ''}
+    ${e.governance ? `
+    <div class="card">
+      <div class="card-header"><span class="card-title">Governance & compliance</span></div>
+      <div class="card-body"><p style="font-size:0.825rem;color:var(--ink2);max-width:none">${escHtml(e.governance)}</p></div>
+    </div>` : ''}`;
+}
+
+function deleteEntity(id) {
+  if (!confirm('Delete this entity?')) return;
+  ws.entities = ws.entities.filter(e => e.id !== id);
+  if (currentEntityId === id) currentEntityId = null;
+  saveWorkspace(); renderEntities();
+}
+
+// ─── DOMAINS ──────────────────────────────────────────────────────
+function openDomainModal(dom) {
+  ['dom-name','dom-owner','dom-desc','dom-entities','dom-systems','dom-deps'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = dom ? (dom[id.replace('dom-','')] || '') : '';
+  });
+  document.getElementById('domainModal')._editing = dom?.id || null;
+  openModal('domainModal');
+}
+
+function saveDomain() {
+  const name = document.getElementById('dom-name').value.trim();
+  if (!name) { showToast('Domain name is required', 'warn'); return; }
+  const dom = {
+    id: document.getElementById('domainModal')._editing || (Date.now() + Math.random()),
+    name, owner: document.getElementById('dom-owner').value,
+    description: document.getElementById('dom-desc').value,
+    entities: document.getElementById('dom-entities').value,
+    systems: document.getElementById('dom-systems').value,
+    deps: document.getElementById('dom-deps').value,
+  };
+  const idx = ws.domains.findIndex(d => d.id === dom.id);
+  if (idx >= 0) ws.domains[idx] = dom; else ws.domains.push(dom);
+  saveWorkspace(); renderDomains(); closeModal('domainModal');
+  showToast('Domain saved: ' + name, 'success');
+}
+
+async function aiDetectDomains() {
+  if (ws.documents.length === 0 && ws.entities.length === 0) { showToast('Add documentation or entities first', 'warn'); return; }
+  const content = ws.documents.map(d => d.content||'').join('\n').substring(0,3000);
+  const entities = ws.entities.map(e => e.name).join(', ');
+  const result = await callClaude(`From this context, identify business domains. Entities available: ${entities}. Docs: ${content.substring(0,2000)}. Return JSON: {"domains": [{"name":"...","owner":"...","description":"...","entities":"e1,e2","systems":"s1,s2"}]}`);
+  if (typeof result === 'object' && result.domains) {
+    result.domains.forEach(d => { if (!ws.domains.find(x => x.name === d.name)) ws.domains.push({ id: Date.now()+Math.random(), ...d, deps:'' }); });
+    saveWorkspace(); renderDomains(); showToast('Domains detected!', 'success');
+  }
+}
+
+function renderDomains() {
+  const grid = document.getElementById('domainGrid');
+  if (ws.domains.length === 0) {
+    grid.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--ink3);font-size:0.875rem;grid-column:1/-1">No domains defined yet.</div>';
+    return;
+  }
+  const colors = ['#4338f5','#7c3aed','#059669','#d97706','#0284c7','#dc2626'];
+  grid.innerHTML = ws.domains.map((d, i) => `
+    <div class="domain-card">
+      <div class="domain-card-top" style="border-left:3px solid ${colors[i%colors.length]}">
+        <div class="domain-name">${escHtml(d.name)}</div>
+        <div class="domain-owner">👤 ${escHtml(d.owner||'No owner')}</div>
+        ${d.description ? `<p style="font-size:0.78rem;color:var(--ink2);margin-top:0.4rem;max-width:none">${escHtml(d.description)}</p>` : ''}
+      </div>
+      <div class="domain-entities">
+        ${(d.entities||'').split(',').filter(Boolean).map(e => `
+          <div class="domain-entity-row">
+            <span class="domain-entity-name">${escHtml(e.trim())}</span>
+            <span class="domain-entity-role">entity</span>
+          </div>`).join('')}
+        ${(d.systems||'').split(',').filter(Boolean).map(s => `
+          <div class="domain-entity-row">
+            <span style="font-size:0.75rem;color:var(--blue)">🖥️ ${escHtml(s.trim())}</span>
+            <span class="domain-entity-role">system</span>
+          </div>`).join('')}
+      </div>
+      <div style="padding:0.5rem 1.1rem;border-top:1px solid var(--wire);display:flex;gap:0.5rem">
+        <button class="btn btn-ghost btn-sm" onclick="openDomainModal(ws.domains.find(x=>x.id==${d.id}))">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteDomain(${d.id})">Delete</button>
+      </div>
+    </div>`).join('');
+}
+
+function deleteDomain(id) {
+  if (!confirm('Delete this domain?')) return;
+  ws.domains = ws.domains.filter(d => d.id !== id);
+  saveWorkspace(); renderDomains();
+}
+
+// ─── TOOLSET ──────────────────────────────────────────────────────
+function openToolModal() { openModal('toolModal'); ['tool-name','tool-category','tool-usecase','tool-notes','tool-cost'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; }); }
+
+function saveTool() {
+  const name = document.getElementById('tool-name').value.trim();
+  if (!name) { showToast('Tool name is required', 'warn'); return; }
+  ws.tools.push({
+    id: Date.now() + Math.random(), name,
+    category: document.getElementById('tool-category').value,
+    status: document.getElementById('tool-status').value,
+    cost: document.getElementById('tool-cost').value,
+    usecase: document.getElementById('tool-usecase').value,
+    notes: document.getElementById('tool-notes').value,
+  });
+  saveWorkspace(); renderToolset(); closeModal('toolModal');
+  showToast('Tool saved: ' + name, 'success');
+}
+
+function loadDefaultTools() {
+  const defaults = [
+    { name:'dbt', category:'Transformation', status:'approved', icon:'🔄', cost:'Free / $100+/mo', usecase:'SQL-based data transformation and modeling' },
+    { name:'Apache Airflow', category:'Orchestration', status:'approved', icon:'🌊', cost:'Self-hosted / $200+/mo', usecase:'Workflow orchestration and scheduling' },
+    { name:'Airbyte', category:'Ingestion / ELT', status:'approved', icon:'🔌', cost:'Free OSS / $200+/mo', usecase:'Data ingestion and ELT from 300+ sources' },
+    { name:'Apache Kafka', category:'Streaming', status:'approved', icon:'⚡', cost:'Self-hosted / $500+/mo', usecase:'Real-time event streaming and messaging' },
+    { name:'Snowflake', category:'Data Warehouse', status:'approved', icon:'❄️', cost:'Usage-based', usecase:'Cloud data warehouse for analytics' },
+    { name:'BigQuery', category:'Data Warehouse', status:'approved', icon:'🏛️', cost:'Usage-based', usecase:'Google Cloud data warehouse' },
+    { name:'Databricks', category:'Data Lake', status:'approved', icon:'🧱', cost:'Usage-based', usecase:'Lakehouse platform for Spark workloads' },
+    { name:'Fivetran', category:'Ingestion / ELT', status:'approved', icon:'🔗', cost:'Usage-based', usecase:'Automated data pipelines for SaaS sources' },
+    { name:'Python', category:'Programming Language', status:'preferred', icon:'🐍', cost:'Free', usecase:'Custom pipeline logic and transformations' },
+    { name:'SQL', category:'Programming Language', status:'preferred', icon:'🗄️', cost:'Free', usecase:'Data querying and transformation' },
+    { name:'Prefect', category:'Orchestration', status:'evaluating', icon:'🌀', cost:'Free / $500+/mo', usecase:'Modern workflow orchestration alternative to Airflow' },
+    { name:'AWS Glue', category:'Cloud Platform', status:'approved', icon:'☁️', cost:'Usage-based', usecase:'Serverless ETL on AWS' },
+  ];
+  defaults.forEach(t => { if (!ws.tools.find(x => x.name === t.name)) ws.tools.push({ id: Date.now()+Math.random(), ...t, notes:'' }); });
+  saveWorkspace(); renderToolset(); showToast('Industry-standard tools loaded!', 'success');
+}
+
+function deleteTool(id) {
+  if (!confirm('Remove this tool?')) return;
+  ws.tools = ws.tools.filter(t => t.id !== id);
+  saveWorkspace(); renderToolset();
+}
+
+function renderToolset() {
+  const content = document.getElementById('toolsetContent');
+  if (ws.tools.length === 0) {
+    content.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--ink3);font-size:0.875rem">No tools defined yet. Add tools or load industry-standard defaults.</div>';
+    return;
+  }
+  const categories = [...new Set(ws.tools.map(t => t.category))].sort();
+  const statusIcon = { approved:'✅', preferred:'⭐', restricted:'⚠️', evaluating:'🔍' };
+  const statusClass = { approved:'badge-green', preferred:'badge-blue', restricted:'badge-amber', evaluating:'badge-gray' };
+  const toolIcons = { dbt:'🔄', 'Apache Airflow':'🌊', Airbyte:'🔌', 'Apache Kafka':'⚡', Snowflake:'❄️', BigQuery:'🏛️', Databricks:'🧱', Fivetran:'🔗', Python:'🐍', SQL:'🗄️', Prefect:'🌀', 'AWS Glue':'☁️' };
+
+  content.innerHTML = categories.map(cat => `
+    <div class="toolset-category">
+      <h3>${cat}</h3>
+      <div class="tools-grid">
+        ${ws.tools.filter(t => t.category === cat).map(t => `
+          <div class="tool-card ${t.status==='restricted'?'restricted':t.status==='approved'||t.status==='preferred'?'approved':''}">
+            <div class="tool-icon">${toolIcons[t.name] || t.icon || '🔧'}</div>
+            <div>
+              <div class="tool-name">${escHtml(t.name)}</div>
+              <div class="tool-category">${escHtml(t.cost||'')}</div>
+            </div>
+            <div class="tool-status" style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+              <span class="badge ${statusClass[t.status]||'badge-gray'}">${statusIcon[t.status]||''} ${t.status}</span>
+              <button class="btn btn-danger btn-sm" style="padding:1px 6px;font-size:0.68rem" onclick="deleteTool(${t.id})">✕</button>
+            </div>
+          </div>`).join('')}
+        <div class="add-tool-card" onclick="openToolModal()">＋ Add ${cat}</div>
+      </div>
+    </div>`).join('') + `
+    <div class="toolset-category">
+      <div class="tools-grid"><div class="add-tool-card" onclick="openToolModal()">＋ Add new tool</div></div>
+    </div>`;
+}
+
+// ─── AI ANALYZE ALL ───────────────────────────────────────────────
+async function runAIAnalysis() {
+  if (ws.documents.length > 0) await analyzeAllDocs();
+  else showToast('Add documents to the Intake section first, then run analysis.', 'warn');
+}
+
+// ─── MODALS ───────────────────────────────────────────────────────
+function openModal(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow = 'hidden'; }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow = ''; }
+
+// ─── HELPERS ──────────────────────────────────────────────────────
+function logout() { localStorage.removeItem('ff_token'); window.location.href = '/'; }
+function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast' + (type ? ' ' + type : '');
+  t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3500);
+}
+</script>
+</body>
+</html>
