@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Architecture Builder — Pipebase</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0d0d14;--ink2:#3a3a4a;--ink3:#7a7a8a;--ink4:#b0b0bc;--wire:#e4e4ef;--wire2:#f0f0f8;--bg:#fff;--surface:#f8f8fc;--surface2:#f2f2f8;--accent:#4338f5;--glow:rgba(67,56,245,0.12);--green:#059669;--amber:#d97706;--red:#dc2626;--purple:#7c3aed;--sidebar-w:240px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',-apple-system,system-ui,sans-serif;color:var(--ink);background:var(--surface);-webkit-font-smoothing:antialiased;}
+button,input,textarea,select{font-family:inherit;}
+.sidebar{background:#0d0d14;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);z-index:50;overflow-y:auto;}
+.main{margin-left:var(--sidebar-w);min-height:100vh;display:flex;flex-direction:column;}
+.topbar{background:var(--bg);border-bottom:1px solid var(--wire);padding:0 2rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40;}
+.page-content{flex:1;padding:2rem;}
+.nav-top{padding:1.1rem 0.875rem 0.75rem;border-bottom:1px solid rgba(255,255,255,0.06);}
+.nav-brand{display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;}
+.nav-brand-icon{width:26px;height:26px;background:var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.8rem;}
+.nav-brand-name{font-size:0.9rem;font-weight:800;color:#fff;}
+.nav-brand-name span{color:#818cf8;}
+.nav-links{flex:1;padding:0.5rem 0;}
+.nav-sec{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,0.22);padding:0.65rem 0.875rem 0.3rem;}
+.nav-btn{display:flex;align-items:center;gap:0.55rem;padding:0.45rem 0.875rem;font-size:0.8rem;font-weight:500;color:rgba(255,255,255,0.5);border:none;background:none;width:100%;text-align:left;cursor:pointer;transition:all .15s;}
+.nav-btn:hover{color:rgba(255,255,255,0.85);background:rgba(255,255,255,0.05);}
+.nav-btn.active{color:#fff;background:rgba(255,255,255,0.08);border-left:2px solid #818cf8;}
+.nav-btn .ic{font-size:0.85rem;width:16px;text-align:center;flex-shrink:0;}
+.nav-foot{padding:0.65rem 0.875rem;border-top:1px solid rgba(255,255,255,0.06);margin-top:auto;display:flex;align-items:center;gap:0.5rem;}
+.nav-av{width:26px;height:26px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;color:#fff;flex-shrink:0;}
+.nav-un{font-size:0.78rem;font-weight:600;color:rgba(255,255,255,0.75);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.nav-lo{background:none;border:none;color:rgba(255,255,255,0.3);font-size:0.72rem;cursor:pointer;}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:0.45rem 0.875rem;border-radius:8px;font-size:0.82rem;font-weight:600;border:none;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.btn-primary{background:var(--accent);color:#fff;}.btn-primary:hover{background:#3730e0;}
+.btn-secondary{background:var(--surface2);color:var(--ink);border:1px solid var(--wire);}.btn-secondary:hover{background:var(--wire2);}
+.btn-ghost{background:transparent;color:var(--ink2);border:1px solid var(--wire);}.btn-ghost:hover{background:var(--surface);}
+.btn-green{background:var(--green);color:#fff;}
+.btn-danger{background:rgba(220,38,38,0.08);color:var(--red);border:1px solid rgba(220,38,38,0.2);}
+.btn-sm{padding:0.3rem 0.65rem;font-size:0.75rem;}
+.btn:disabled{opacity:0.4;cursor:not-allowed;}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;font-size:0.68rem;font-weight:700;padding:2px 7px;border-radius:20px;}
+.badge-green{background:rgba(5,150,105,0.1);color:var(--green);}
+.badge-amber{background:rgba(217,119,6,0.1);color:var(--amber);}
+.badge-blue{background:rgba(2,132,199,0.1);color:#0284c7;}
+.badge-gray{background:var(--surface2);color:var(--ink3);border:1px solid var(--wire);}
+.badge-purple{background:rgba(124,58,237,0.1);color:var(--purple);}
+
+/* PAGE HEADER */
+.page-header{margin-bottom:2rem;}
+.page-header h1{font-size:1.5rem;font-weight:800;letter-spacing:-0.5px;margin-bottom:0.35rem;}
+.page-header p{font-size:0.875rem;color:var(--ink3);}
+
+/* ARCHITECTURE CARDS */
+.arch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:1.25rem;margin-bottom:2rem;}
+.arch-card{background:var(--bg);border:1.5px solid var(--wire);border-radius:14px;overflow:hidden;transition:all .2s;cursor:pointer;}
+.arch-card:hover{border-color:var(--accent);box-shadow:0 6px 24px var(--glow);transform:translateY(-2px);}
+.arch-card-header{padding:1.25rem;border-bottom:1px solid var(--wire);display:flex;align-items:flex-start;gap:0.875rem;}
+.arch-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;flex-shrink:0;}
+.arch-name{font-size:0.95rem;font-weight:800;margin-bottom:0.2rem;}
+.arch-meta{font-size:0.75rem;color:var(--ink3);display:flex;gap:0.75rem;flex-wrap:wrap;}
+.arch-body{padding:1.25rem;}
+
+/* LAYER FLOW DIAGRAM */
+.layer-flow{display:flex;align-items:center;gap:0;overflow-x:auto;padding:0.5rem 0;}
+.layer-node{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+.layer-bubble{padding:0.4rem 0.875rem;border-radius:20px;font-size:0.75rem;font-weight:700;border:1.5px solid;transition:all .2s;white-space:nowrap;}
+.layer-bubble.status-draft{opacity:0.5;}
+.layer-bubble.status-generated{opacity:0.8;}
+.layer-bubble.status-approved{opacity:1;}
+.layer-count{font-size:0.65rem;color:var(--ink3);margin-top:0.25rem;font-family:'JetBrains Mono',monospace;}
+.layer-arrow{color:var(--ink4);font-size:0.9rem;margin:0 0.25rem;flex-shrink:0;padding-bottom:1rem;}
+
+/* EMPTY STATE */
+.empty-arch{text-align:center;padding:4rem 2rem;background:var(--bg);border:2px dashed var(--wire);border-radius:16px;}
+.empty-arch-icon{font-size:3rem;margin-bottom:1rem;opacity:0.3;}
+.empty-arch h2{font-size:1.1rem;font-weight:700;margin-bottom:0.5rem;}
+.empty-arch p{font-size:0.875rem;color:var(--ink3);max-width:40ch;margin:0 auto 1.5rem;}
+
+/* FORMS */
+.form-group{margin-bottom:1.1rem;}
+.form-label{display:block;font-size:0.75rem;font-weight:700;color:var(--ink2);margin-bottom:0.35rem;text-transform:uppercase;letter-spacing:0.4px;}
+.form-input{width:100%;padding:0.6rem 0.875rem;border:1px solid var(--wire);border-radius:8px;font-size:0.875rem;color:var(--ink);background:var(--bg);transition:border-color .15s;}
+.form-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--glow);}
+.form-textarea{min-height:80px;resize:vertical;line-height:1.6;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.form-hint{font-size:0.72rem;color:var(--ink3);margin-top:0.3rem;}
+
+/* GOVERNANCE SELECTOR */
+.gov-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:0.625rem;}
+.gov-card{padding:0.75rem;border:1.5px solid var(--wire);border-radius:8px;cursor:pointer;transition:all .15s;}
+.gov-card:hover{border-color:var(--accent);}
+.gov-card.selected{border-color:var(--accent);background:var(--glow);}
+.gov-card-title{font-size:0.8rem;font-weight:700;margin-bottom:0.2rem;}
+.gov-card-desc{font-size:0.72rem;color:var(--ink3);}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;display:flex;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto;opacity:0;pointer-events:none;transition:opacity .2s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:var(--bg);border-radius:16px;width:100%;max-width:620px;box-shadow:0 25px 80px rgba(0,0,0,0.2);transform:scale(0.97);transition:transform .2s;}
+.modal-overlay.open .modal{transform:scale(1);}
+.modal-header{padding:1.25rem 1.5rem;border-bottom:1px solid var(--wire);display:flex;align-items:center;justify-content:space-between;}
+.modal-header h2{font-size:1rem;font-weight:700;}
+.modal-close{background:none;border:none;font-size:1.25rem;color:var(--ink3);cursor:pointer;padding:4px 8px;border-radius:6px;}
+.modal-body{padding:1.5rem;}
+.modal-footer{padding:1rem 1.5rem;border-top:1px solid var(--wire);display:flex;justify-content:flex-end;gap:0.75rem;}
+
+/* AI SUGGESTION */
+.ai-suggestion{background:linear-gradient(135deg,rgba(67,56,245,0.05),rgba(124,58,237,0.05));border:1px solid rgba(99,102,241,0.2);border-radius:12px;padding:1.25rem;margin-top:1rem;}
+.ai-suggestion-title{font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--accent);margin-bottom:0.875rem;display:flex;align-items:center;gap:0.5rem;}
+.suggested-layer{display:flex;align-items:center;gap:0.75rem;padding:0.625rem 0.875rem;border:1px solid rgba(99,102,241,0.15);border-radius:8px;margin-bottom:0.5rem;cursor:pointer;transition:all .15s;background:rgba(255,255,255,0.6);}
+.suggested-layer:hover{border-color:var(--accent);background:rgba(255,255,255,0.9);}
+.suggested-layer.selected{border-color:var(--accent);background:var(--glow);}
+.suggested-layer-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.suggested-layer-name{font-size:0.82rem;font-weight:700;}
+.suggested-layer-purpose{font-size:0.72rem;color:var(--ink3);}
+
+/* SPINNER */
+.spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;}
+.spinner-dark{border-color:var(--wire);border-top-color:var(--accent);}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* TOAST */
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(12px);background:var(--ink);color:#fff;padding:0.6rem 1.1rem;border-radius:9px;font-size:0.82rem;font-weight:500;z-index:200;opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.success{background:var(--green);}.toast.error{background:var(--red);}.toast.warn{background:var(--amber);}
+.page-loader{position:fixed;inset:0;background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;z-index:999;}
+.loader-spinner{width:32px;height:32px;border:3px solid var(--wire);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+
+@media(max-width:768px){.sidebar{display:none;}.main{margin-left:0;}.arch-grid{grid-template-columns:1fr;}.form-row{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<div class="page-loader" id="pl"><div class="loader-spinner"></div><div style="font-size:0.875rem;color:var(--ink3)">Loading Architecture Builder...</div></div>
+
+<div id="appShell" style="display:none">
+<aside class="sidebar">
+  <div class="nav-top">
+    <div class="nav-brand"><div class="nav-brand-icon">⚡</div><div class="nav-brand-name">Pipe<span>base</span></div></div>
+  </div>
+  <div class="nav-links">
+    <div class="nav-sec">Architecture</div>
+    <button class="nav-btn active"><span class="ic">🏛️</span> Architecture Builder</button>
+    <button class="nav-btn" onclick="go('architecture-docs.html')"><span class="ic">📋</span> Documentation</button>
+    <button class="nav-btn" onclick="go('approvals.html')"><span class="ic">✅</span> Approvals</button>
+    <div class="nav-sec">Platform</div>
+    <button class="nav-btn" onclick="go('data-viewer.html')"><span class="ic">📊</span> Data Viewer</button>
+    <button class="nav-btn" onclick="go('connectors.html')"><span class="ic">🔌</span> Connectors</button>
+    <button class="nav-btn" onclick="go('operations.html')"><span class="ic">📡</span> Operations</button>
+    <button class="nav-btn" onclick="go('marketplace.html')"><span class="ic">🏪</span> Marketplace</button>
+    <button class="nav-btn" onclick="go('team.html')"><span class="ic">👥</span> Team</button>
+    <button class="nav-btn" onclick="go('dashboard.html')"><span class="ic">📊</span> Dashboard</button>
+  </div>
+  <div class="nav-foot">
+    <div class="nav-av" id="navAv">?</div>
+    <div class="nav-un" id="navUn">...</div>
+    <button class="nav-lo" onclick="logout()">↩</button>
+  </div>
+</aside>
+
+<div class="main">
+  <header class="topbar">
+    <div style="font-size:0.8rem;color:var(--ink3)">Architecture / <strong style="color:var(--ink)">All Architectures</strong></div>
+    <button class="btn btn-primary" onclick="openNewArch()">+ New architecture</button>
+  </header>
+
+  <div class="page-content">
+    <div class="page-header">
+      <h1>🏛️ Architecture Builder</h1>
+      <p>Define your medallion data architecture. AI suggests layers and transformations, your team refines and approves, code deploys to your platforms.</p>
+    </div>
+
+    <div id="archGrid" class="arch-grid">
+      <div class="empty-arch">
+        <div class="empty-arch-icon">🏛️</div>
+        <h2>No architectures yet</h2>
+        <p>Create your first medallion architecture. AI will suggest layers based on your data source.</p>
+        <button class="btn btn-primary" onclick="openNewArch()">+ Create architecture</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- NEW ARCHITECTURE MODAL -->
+<div class="modal-overlay" id="newArchModal" onclick="if(event.target===this)closeModal('newArchModal')">
+<div class="modal" onclick="event.stopPropagation()" style="max-width:680px">
+  <div class="modal-header">
+    <h2>🏛️ New architecture</h2>
+    <button class="modal-close" onclick="closeModal('newArchModal')">✕</button>
+  </div>
+  <div class="modal-body">
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Architecture name *</label>
+        <input class="form-input" id="archName" placeholder="e.g. Netflix Analytics, Shopify Revenue">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Business domain</label>
+        <input class="form-input" id="archDomain" placeholder="e.g. Analytics, Finance, Marketing">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <textarea class="form-input form-textarea" id="archDesc" placeholder="What business questions will this architecture answer?"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Data source</label>
+      <select class="form-input" id="archSource" style="appearance:auto;cursor:pointer" onchange="updateSourceFields()">
+        <option value="">Select a connector or CSV...</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Governance level</label>
+      <div class="gov-grid" id="govGrid">
+        <div class="gov-card selected" onclick="selectGov('auto',this)">
+          <div class="gov-card-title">⚡ Auto</div>
+          <div class="gov-card-desc">AI deploys automatically. Good for small teams moving fast.</div>
+        </div>
+        <div class="gov-card" onclick="selectGov('supervised',this)">
+          <div class="gov-card-title">👁 Supervised</div>
+          <div class="gov-card-desc">One approval required before deployment. Recommended default.</div>
+        </div>
+        <div class="gov-card" onclick="selectGov('governed',this)">
+          <div class="gov-card-title">🔐 Governed</div>
+          <div class="gov-card-desc">Architect + engineer approval required. Good for production data.</div>
+        </div>
+        <div class="gov-card" onclick="selectGov('enterprise',this)">
+          <div class="gov-card-title">🏢 Enterprise</div>
+          <div class="gov-card-desc">Full approval chain with security review. For regulated industries.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Layer Suggestions -->
+    <div id="aiSuggestionArea" style="display:none">
+      <div class="ai-suggestion">
+        <div class="ai-suggestion-title">🧠 AI suggested layers <span style="font-weight:400;color:var(--ink3);text-transform:none;letter-spacing:0" id="aiRationale"></span></div>
+        <div id="suggestedLayers"></div>
+        <div style="margin-top:0.75rem;font-size:0.75rem;color:var(--ink3)">All layers selected. Deselect any you don't need.</div>
+      </div>
+    </div>
+
+    <div id="aiSuggestBtn" style="margin-top:1rem;display:none">
+      <button class="btn btn-secondary" onclick="suggestLayers()" id="suggestBtn">🧠 AI suggest layers</button>
+      <span style="font-size:0.75rem;color:var(--ink3);margin-left:0.75rem">Based on your data source and domain</span>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-ghost" onclick="closeModal('newArchModal')">Cancel</button>
+    <button class="btn btn-primary" onclick="createArchitecture()">Create architecture →</button>
+  </div>
+</div>
+</div>
+
+<script>
+const API = 'https://api.pipebase.app';
+let user = null;
+let myArchitectures = [];
+let myConnectors = [];
+let csvFiles = [];
+let selectedGov = 'auto';
+let suggestedLayersList = [];
+let selectedSuggestedLayers = new Set();
+
+// ── INIT ─────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  const token = localStorage.getItem('pb_token');
+  if (!token) return go('/');
+  try {
+    const r = await api('/api/auth/me');
+    user = r.user;
+    document.getElementById('navAv').textContent = (user.name||user.email)[0].toUpperCase();
+    document.getElementById('navUn').textContent = user.name||user.email.split('@')[0];
+    await Promise.all([loadArchitectures(), loadSources()]);
+    document.getElementById('pl').style.display = 'none';
+    document.getElementById('appShell').style.display = 'block';
+  } catch { localStorage.removeItem('pb_token'); go('/'); }
+});
+
+async function loadArchitectures() {
+  const r = await api('/api/medallion');
+  myArchitectures = r.architectures || [];
+  renderArchitectures();
+}
+
+async function loadSources() {
+  const [cr, fr] = await Promise.allSettled([api('/api/connectors'), api('/api/connectors/csv/list')]);
+  myConnectors = cr.status==='fulfilled' ? cr.value.connectors||[] : [];
+  csvFiles = fr.status==='fulfilled' ? fr.value.files||[] : [];
+}
+
+// ── RENDER ARCHITECTURES ──────────────────────────────────────────
+function renderArchitectures() {
+  const grid = document.getElementById('archGrid');
+  if (!myArchitectures.length) {
+    grid.innerHTML = `<div class="empty-arch">
+      <div class="empty-arch-icon">🏛️</div>
+      <h2>No architectures yet</h2>
+      <p>Create your first medallion architecture. AI will suggest layers based on your data source.</p>
+      <button class="btn btn-primary" onclick="openNewArch()">+ Create architecture</button>
+    </div>`;
+    return;
+  }
+
+  const govColors = { auto:'#059669', supervised:'#0284c7', governed:'#d97706', enterprise:'#7c3aed' };
+  const govLabels = { auto:'⚡ Auto', supervised:'👁 Supervised', governed:'🔐 Governed', enterprise:'🏢 Enterprise' };
+
+  grid.innerHTML = myArchitectures.map(arch => {
+    const statusBadge = arch.status==='active'?'badge-green':arch.status==='draft'?'badge-gray':'badge-amber';
+    return `
+      <div class="arch-card" onclick="openArchitecture('${arch._id}')">
+        <div class="arch-card-header">
+          <div class="arch-icon" style="background:rgba(67,56,245,0.1)">🏛️</div>
+          <div style="flex:1;min-width:0">
+            <div class="arch-name">${esc(arch.name)}</div>
+            <div class="arch-meta">
+              <span>${esc(arch.domain||'General')}</span>
+              <span class="badge ${statusBadge}">${arch.status||'draft'}</span>
+              <span class="badge badge-gray" style="border-color:${govColors[arch.governanceLevel]||'var(--wire)'};color:${govColors[arch.governanceLevel]||'var(--ink3)'}">${govLabels[arch.governanceLevel]||arch.governanceLevel}</span>
+              ${arch.layerCount?`<span>${arch.layerCount} layers</span>`:''}
+            </div>
+          </div>
+          <div style="display:flex;gap:0.4rem">
+            <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();openArchitecture('${arch._id}')">Open →</button>
+            <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteArch('${arch._id}')">✕</button>
+          </div>
+        </div>
+        <div class="arch-body">
+          ${arch.description?`<div style="font-size:0.8rem;color:var(--ink3);margin-bottom:0.875rem">${esc(arch.description)}</div>`:''}
+          <div style="font-size:0.72rem;color:var(--ink4)">Created ${timeAgo(arch.createdAt)}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function openArchitecture(id) {
+  window.location.href = `layer-editor.html?arch=${id}`;
+}
+
+async function deleteArch(id) {
+  if (!confirm('Delete this architecture and all its layers?')) return;
+  await api(`/api/medallion/${id}`, { method:'DELETE' });
+  await loadArchitectures();
+  toast('Architecture deleted', 'success');
+}
+
+// ── NEW ARCHITECTURE MODAL ────────────────────────────────────────
+function openNewArch() {
+  // Populate source selector
+  const sel = document.getElementById('archSource');
+  sel.innerHTML = '<option value="">Select a data source...</option>';
+  myConnectors.forEach(c => sel.add(new Option(`${c.type === 'postgres' ? '🐘' : c.type === 'shopify' ? '🛍️' : '🔌'} ${c.name} (${c.type})`, `connector:${c._id}:${c.type}:${c.name}`)));
+  csvFiles.forEach(f => sel.add(new Option(`📄 ${f.filename} (CSV)`, `csv:${f.filename}:csv:${f.filename}`)));
+
+  document.getElementById('archName').value = '';
+  document.getElementById('archDomain').value = '';
+  document.getElementById('archDesc').value = '';
+  document.getElementById('aiSuggestionArea').style.display = 'none';
+  document.getElementById('aiSuggestBtn').style.display = 'none';
+  selectedGov = 'auto';
+  suggestedLayersList = [];
+  selectedSuggestedLayers = new Set();
+  openModal('newArchModal');
+}
+
+function updateSourceFields() {
+  const val = document.getElementById('archSource').value;
+  document.getElementById('aiSuggestBtn').style.display = val ? 'block' : 'none';
+}
+
+function selectGov(level, el) {
+  selectedGov = level;
+  document.querySelectorAll('.gov-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+async function suggestLayers() {
+  const sourceParts = document.getElementById('archSource').value.split(':');
+  if (!sourceParts[0]) { toast('Select a data source first', 'warn'); return; }
+  const domain = document.getElementById('archDomain').value || 'Analytics';
+  const btn = document.getElementById('suggestBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> AI is thinking...';
+
+  try {
+    // Auto-populate name if empty
+    const nameEl = document.getElementById('archName');
+    if (!nameEl.value) nameEl.value = (sourceParts[3]||sourceParts[1]).replace(/\.csv$/i,'') + ' — ' + domain;
+
+    // Get data profile if CSV
+    let dataProfile = null;
+    if (sourceParts[0]==='csv') {
+      try {
+        const meta = await api(`/api/connectors/csv/data?filename=${encodeURIComponent(sourceParts[1])}`);
+        dataProfile = { totalRows: meta.totalRows, columns: meta.headers };
+      } catch(e) {}
+    }
+
+    const archId = '_temp_' + Date.now();
+    const result = await api('/api/medallion/' + archId + '/suggest-layers', {
+      method: 'POST',
+      body: JSON.stringify({
+        sourceType: sourceParts[2],
+        sourceName: sourceParts[3]||sourceParts[1],
+        dataProfile,
+        domain,
+      })
+    });
+
+    suggestedLayersList = result.layers || [];
+    selectedSuggestedLayers = new Set(suggestedLayersList.map((_,i)=>i));
+
+    document.getElementById('aiRationale').textContent = '— ' + (result.rationale||'');
+    document.getElementById('suggestedLayers').innerHTML = suggestedLayersList.map((l,i) => `
+      <div class="suggested-layer selected" id="sl-${i}" onclick="toggleSuggestedLayer(${i})">
+        <div class="suggested-layer-dot" style="background:${l.color}"></div>
+        <div style="flex:1">
+          <div class="suggested-layer-name">${esc(l.name)}</div>
+          <div class="suggested-layer-purpose">${esc(l.purpose)}</div>
+        </div>
+        <span style="font-size:0.7rem;color:var(--accent);font-weight:600">✓</span>
+      </div>`).join('');
+
+    document.getElementById('aiSuggestionArea').style.display = 'block';
+    toast('AI suggested ' + suggestedLayersList.length + ' layers', 'success');
+  } catch(err) {
+    toast('AI suggestion failed: ' + err.message, 'error');
+  }
+
+  btn.disabled = false;
+  btn.textContent = '🧠 Re-suggest layers';
+}
+
+function toggleSuggestedLayer(idx) {
+  const el = document.getElementById('sl-'+idx);
+  if (selectedSuggestedLayers.has(idx)) {
+    selectedSuggestedLayers.delete(idx);
+    el.classList.remove('selected');
+    el.querySelector('span').textContent = '';
+  } else {
+    selectedSuggestedLayers.add(idx);
+    el.classList.add('selected');
+    el.querySelector('span').textContent = '✓';
+  }
+}
+
+async function createArchitecture() {
+  const name = document.getElementById('archName').value.trim();
+  if (!name) { toast('Architecture name required', 'warn'); return; }
+
+  const sourceParts = (document.getElementById('archSource').value || '').split(':');
+
+  try {
+    const arch = await api('/api/medallion', {
+      method: 'POST',
+      body: JSON.stringify({
+        name,
+        domain: document.getElementById('archDomain').value || 'General',
+        description: document.getElementById('archDesc').value,
+        governanceLevel: selectedGov,
+        sourceConnectorId: sourceParts[0]==='connector' ? sourceParts[1] : null,
+        sourceType: sourceParts[2] || null,
+        sourceName: sourceParts[3] || sourceParts[1] || null,
+      })
+    });
+
+    // Create suggested layers
+    const layersToCreate = suggestedLayersList.filter((_,i) => selectedSuggestedLayers.has(i));
+    for (const layer of layersToCreate) {
+      await api(`/api/medallion/${arch.architecture._id}/layers`, {
+        method: 'POST',
+        body: JSON.stringify(layer)
+      });
+    }
+
+    closeModal('newArchModal');
+    toast('Architecture created!', 'success');
+    // Go straight to the layer editor
+    window.location.href = `layer-editor.html?arch=${arch.architecture._id}`;
+  } catch(err) {
+    toast('Failed: ' + err.message, 'error');
+  }
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────
+function openModal(id){document.getElementById(id).classList.add('open');document.body.style.overflow='hidden';}
+function closeModal(id){document.getElementById(id).classList.remove('open');document.body.style.overflow='';}
+async function api(path,opts={}){const h={'Content-Type':'application/json'};const tk=localStorage.getItem('pb_token');if(tk)h['Authorization']=`Bearer ${tk}`;const r=await fetch(API+path,{...opts,headers:{...h,...opts.headers}});const d=await r.json();if(!r.ok)throw new Error(d.error||'Request failed');return d;}
+function go(url){window.location.href=url;}
+function logout(){localStorage.removeItem('pb_token');go('/');}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function timeAgo(ts){const d=Date.now()-new Date(ts).getTime(),m=Math.floor(d/60000);if(m<1)return'just now';if(m<60)return m+'m ago';if(m<1440)return Math.floor(m/60)+'h ago';return Math.floor(m/1440)+'d ago';}
+function toast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast'+(type?' '+type:'');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
+</script>
+</body>
+</html>
