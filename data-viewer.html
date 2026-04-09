@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Viewer — Pipebase</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:#0d0d14;--ink2:#3a3a4a;--ink3:#7a7a8a;--ink4:#b0b0bc;
+  --wire:#e4e4ef;--wire2:#f0f0f8;--bg:#fff;--surface:#f8f8fc;
+  --accent:#4338f5;--glow:rgba(67,56,245,0.12);
+  --green:#059669;--green-bg:rgba(5,150,105,0.08);
+  --amber:#d97706;--amber-bg:rgba(217,119,6,0.08);
+  --red:#dc2626;--sidebar-w:260px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',-apple-system,system-ui,sans-serif;color:var(--ink);background:var(--surface);line-height:1.6;-webkit-font-smoothing:antialiased;}
+button,input,select{font-family:inherit;}
+
+/* LAYOUT */
+.sidebar{background:#0d0d14;color:rgba(255,255,255,0.75);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);z-index:50;overflow-y:auto;}
+.main-area{margin-left:var(--sidebar-w);width:calc(100% - var(--sidebar-w));display:flex;flex-direction:column;min-height:100vh;}
+.topbar{background:var(--bg);border-bottom:1px solid var(--wire);padding:0 1.5rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40;width:100%;}
+
+/* SIDEBAR */
+.sidebar-top{padding:1.25rem 1rem 0.75rem;border-bottom:1px solid rgba(255,255,255,0.06);}
+.sidebar-brand{display:flex;align-items:center;gap:0.6rem;margin-bottom:0.75rem;}
+.sidebar-brand-icon{width:28px;height:28px;background:var(--accent);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:0.85rem;}
+.sidebar-brand-name{font-size:0.95rem;font-weight:800;color:#fff;}
+.sidebar-brand-name span{color:#818cf8;}
+.sidebar-nav{flex:1;padding:0.75rem 0;}
+.nav-section{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,0.25);padding:0.75rem 1rem 0.35rem;}
+.nav-item{display:flex;align-items:center;gap:0.6rem;padding:0.5rem 1rem;font-size:0.825rem;font-weight:500;color:rgba(255,255,255,0.55);border:none;background:none;width:100%;text-align:left;cursor:pointer;transition:all .15s;}
+.nav-item:hover{color:rgba(255,255,255,0.85);background:rgba(255,255,255,0.05);}
+.nav-item.active{color:#fff;background:rgba(255,255,255,0.08);border-left:2px solid #818cf8;}
+.nav-item .icon{font-size:0.9rem;width:18px;text-align:center;flex-shrink:0;}
+.sidebar-bottom{padding:0.75rem 1rem;border-top:1px solid rgba(255,255,255,0.06);}
+.sidebar-user{display:flex;align-items:center;gap:0.6rem;}
+.sidebar-avatar{width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;color:#fff;flex-shrink:0;}
+.sidebar-user-name{font-size:0.8rem;font-weight:600;color:rgba(255,255,255,0.8);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sidebar-logout{background:none;border:none;color:rgba(255,255,255,0.3);font-size:0.75rem;cursor:pointer;}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:0.5rem 1rem;border-radius:8px;font-size:0.825rem;font-weight:600;border:none;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.btn-primary{background:var(--accent);color:#fff;}.btn-primary:hover{background:#3730e0;}
+.btn-secondary{background:var(--surface);color:var(--ink);border:1px solid var(--wire);}.btn-secondary:hover{background:var(--wire2);}
+.btn-ghost{background:transparent;color:var(--ink2);border:1px solid var(--wire);}.btn-ghost:hover{background:var(--surface);}
+.btn-sm{padding:0.35rem 0.75rem;font-size:0.775rem;}
+
+/* VIEW TABS */
+.view-tabs{display:flex;border-bottom:1px solid var(--wire);background:var(--bg);padding:0 1.5rem;}
+.view-tab{padding:0.875rem 1.25rem;font-size:0.82rem;font-weight:600;color:var(--ink3);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;transition:all .15s;}
+.view-tab:hover{color:var(--ink);}
+.view-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+/* STATS ROW */
+.stats-row{display:flex;gap:1.5rem;align-items:center;padding:0.875rem 1.5rem;background:var(--bg);border-bottom:1px solid var(--wire);flex-wrap:wrap;}
+.stat-item{display:flex;align-items:center;gap:0.5rem;font-size:0.82rem;}
+.stat-label{color:var(--ink3);}
+.stat-value{font-weight:700;color:var(--ink);}
+.stat-value.green{color:var(--green);}
+.stat-value.amber{color:var(--amber);}
+
+/* SEARCH & FILTER */
+.toolbar{display:flex;gap:0.75rem;align-items:center;padding:0.75rem 1.5rem;background:var(--bg);border-bottom:1px solid var(--wire);flex-wrap:wrap;}
+.search-input{padding:0.45rem 0.875rem;border:1px solid var(--wire);border-radius:8px;font-size:0.825rem;color:var(--ink);background:var(--bg);min-width:280px;}
+.search-input:focus{outline:none;border-color:var(--accent);}
+.filter-select{padding:0.45rem 0.75rem;border:1px solid var(--wire);border-radius:8px;font-size:0.82rem;color:var(--ink);background:var(--bg);cursor:pointer;}
+.col-toggle{display:flex;gap:0.35rem;flex-wrap:wrap;margin-left:auto;}
+.col-chip{font-size:0.72rem;font-weight:600;padding:2px 8px;border-radius:10px;cursor:pointer;border:1px solid var(--wire);background:var(--surface);color:var(--ink3);transition:all .15s;}
+.col-chip.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+/* DATA TABLE */
+.table-container{flex:1;overflow:auto;position:relative;}
+.data-table{width:100%;border-collapse:collapse;font-size:0.8rem;font-family:'JetBrains Mono',monospace;}
+.data-table th{
+  position:sticky;top:0;z-index:10;
+  text-align:left;padding:0.6rem 0.875rem;
+  font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;
+  color:var(--ink3);background:var(--surface);
+  border-bottom:2px solid var(--wire);
+  white-space:nowrap;cursor:pointer;user-select:none;
+}
+.data-table th:hover{color:var(--accent);}
+.data-table th .sort-icon{margin-left:4px;opacity:0.4;}
+.data-table th.sorted{color:var(--accent);}
+.data-table th.sorted .sort-icon{opacity:1;}
+.data-table td{
+  padding:0.5rem 0.875rem;
+  border-bottom:1px solid var(--wire2);
+  color:var(--ink2);
+  max-width:220px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  vertical-align:middle;
+}
+.data-table tr:hover td{background:rgba(67,56,245,0.03);}
+.data-table tr:nth-child(even) td{background:var(--surface);}
+.data-table tr:nth-child(even):hover td{background:rgba(67,56,245,0.03);}
+
+/* Row number column */
+.row-num{color:var(--ink4);font-size:0.72rem;text-align:right;padding-right:1rem;min-width:50px;}
+
+/* New/changed cells in after view */
+.cell-new{color:var(--green);font-weight:600;}
+.cell-changed{color:var(--accent);}
+.cell-null{color:var(--ink4);font-style:italic;}
+
+/* Side by side diff view */
+.diff-container{display:grid;grid-template-columns:1fr 1fr;height:calc(100vh - 160px);overflow:hidden;}
+.diff-pane{display:flex;flex-direction:column;overflow:hidden;border-right:2px solid var(--wire);}
+.diff-pane:last-child{border-right:none;}
+.diff-pane-header{padding:0.75rem 1.25rem;background:var(--surface);border-bottom:1px solid var(--wire);font-size:0.82rem;font-weight:700;display:flex;align-items:center;gap:0.5rem;flex-shrink:0;}
+.diff-pane-header.before{color:var(--ink3);}
+.diff-pane-header.after{color:var(--green);}
+.diff-table-wrap{flex:1;overflow:auto;}
+
+/* Changed row highlight */
+.row-changed td{background:rgba(67,56,245,0.04)!important;}
+.row-changed td.cell-new{background:rgba(5,150,105,0.06)!important;}
+
+/* Upload prompt */
+.upload-prompt{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:1rem;padding:3rem;text-align:center;}
+.upload-prompt-icon{font-size:3rem;opacity:0.3;}
+.upload-prompt h2{font-size:1.1rem;font-weight:700;}
+.upload-prompt p{font-size:0.875rem;color:var(--ink3);max-width:40ch;margin:0 auto;}
+
+/* Pagination */
+.pagination{display:flex;align-items:center;gap:0.5rem;padding:0.75rem 1.5rem;background:var(--bg);border-top:1px solid var(--wire);flex-shrink:0;}
+.page-info{font-size:0.82rem;color:var(--ink3);margin-right:auto;}
+.page-btn{padding:0.35rem 0.75rem;border:1px solid var(--wire);border-radius:6px;font-size:0.8rem;background:var(--bg);cursor:pointer;color:var(--ink);}
+.page-btn:hover{background:var(--surface);}
+.page-btn:disabled{opacity:0.4;cursor:not-allowed;}
+.page-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+/* Loading */
+.loading{display:flex;align-items:center;justify-content:center;flex:1;gap:0.75rem;color:var(--ink3);}
+.spinner{width:24px;height:24px;border:3px solid var(--wire);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* Toast */
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(12px);background:var(--ink);color:#fff;padding:0.65rem 1.25rem;border-radius:10px;font-size:0.85rem;font-weight:500;z-index:200;opacity:0;transition:all .25s;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.success{background:var(--green);}.toast.error{background:var(--red);}
+
+/* Page loader */
+.page-loader{position:fixed;inset:0;background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;z-index:999;}
+.loader-spinner{width:36px;height:36px;border:3px solid var(--wire);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+
+@media(max-width:768px){.sidebar{display:none;}.main-area{margin-left:0;width:100%;}.diff-container{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<div class="page-loader" id="pageLoader"><div class="loader-spinner"></div><div style="font-size:0.9rem;color:var(--ink3)">Loading data viewer...</div></div>
+
+<div id="appShell" style="display:none;height:100vh;display:none;flex-direction:column">
+
+<aside class="sidebar">
+  <div class="sidebar-top">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon">⚡</div>
+      <div class="sidebar-brand-name">Pipe<span>base</span></div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Data Viewer</div>
+    <button class="nav-item active" id="nav-raw" onclick="switchView('raw')"><span class="icon">📋</span> Raw data</button>
+    <button class="nav-item" id="nav-transformed" onclick="switchView('transformed')"><span class="icon">⚙️</span> Transformed</button>
+    <button class="nav-item" id="nav-diff" onclick="switchView('diff')"><span class="icon">↔️</span> Before / After</button>
+    <div class="nav-section">Platform</div>
+    <button class="nav-item" onclick="window.location='pipeline-run.html'"><span class="icon">▶️</span> Live Runner</button>
+    <button class="nav-item" onclick="window.location='connectors.html'"><span class="icon">🔌</span> Connectors</button>
+    <button class="nav-item" onclick="window.location='factory.html'"><span class="icon">🏭</span> Pipeline Factory</button>
+    <button class="nav-item" onclick="window.location='dashboard.html'"><span class="icon">📊</span> Dashboard</button>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebarAvatar">?</div>
+      <div class="sidebar-user-name" id="sidebarName">Loading...</div>
+      <button class="sidebar-logout" onclick="logout()">↩</button>
+    </div>
+  </div>
+</aside>
+
+<div class="main-area" style="display:flex;flex-direction:column;height:100vh">
+  <header class="topbar">
+    <div style="display:flex;align-items:center;gap:1rem">
+      <div style="font-size:0.8rem;color:var(--ink3)">Data Viewer / <strong id="viewLabel" style="color:var(--ink)">Raw data</strong></div>
+      <span id="datasetLabel" style="font-size:0.78rem;padding:2px 8px;border-radius:10px;background:var(--surface);border:1px solid var(--wire);color:var(--ink3)">No dataset loaded</span>
+    </div>
+    <div style="display:flex;gap:0.75rem;align-items:center">
+      <button class="btn btn-secondary btn-sm" onclick="document.getElementById('csvUpload').click()">📂 Load CSV</button>
+      <input type="file" id="csvUpload" accept=".csv" style="display:none" onchange="loadCSV(event)">
+      <button class="btn btn-primary btn-sm" onclick="exportCurrentView()">⬇ Export view</button>
+    </div>
+  </header>
+
+  <!-- View tabs -->
+  <div class="view-tabs">
+    <button class="view-tab active" id="tab-raw" onclick="switchView('raw')">📋 Raw data</button>
+    <button class="view-tab" id="tab-transformed" onclick="switchView('transformed')">⚙️ Transformed</button>
+    <button class="view-tab" id="tab-diff" onclick="switchView('diff')">↔️ Before / After diff</button>
+  </div>
+
+  <!-- Stats row -->
+  <div class="stats-row" id="statsRow" style="display:none">
+    <div class="stat-item"><span class="stat-label">Rows:</span><span class="stat-value" id="statRows">0</span></div>
+    <div class="stat-item"><span class="stat-label">Columns:</span><span class="stat-value" id="statCols">0</span></div>
+    <div class="stat-item"><span class="stat-label">Showing:</span><span class="stat-value" id="statShowing">0</span></div>
+    <div class="stat-item"><span class="stat-label">New columns after transform:</span><span class="stat-value green" id="statNewCols">0</span></div>
+    <div class="stat-item"><span class="stat-label">Null cells:</span><span class="stat-value amber" id="statNulls">0</span></div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar" id="toolbar" style="display:none">
+    <input class="search-input" id="searchInput" placeholder="🔍 Search across all columns..." oninput="applyFilters()">
+    <select class="filter-select" id="typeFilter" onchange="applyFilters()">
+      <option value="">All types</option>
+      <option value="Movie">Movies only</option>
+      <option value="TV Show">TV Shows only</option>
+    </select>
+    <select class="filter-select" id="colFilter" onchange="applyFilters()">
+      <option value="">All countries</option>
+    </select>
+    <div class="col-toggle" id="colToggle"></div>
+  </div>
+
+  <!-- Main content area -->
+  <div id="mainContent" style="flex:1;overflow:hidden;display:flex;flex-direction:column">
+    <div class="upload-prompt" id="uploadPrompt">
+      <div class="upload-prompt-icon">📊</div>
+      <h2>Load your data</h2>
+      <p>Click "Load CSV" to open your netflix_titles.csv file and explore all 8,809 rows with full before/after transformation view.</p>
+      <button class="btn btn-primary" onclick="document.getElementById('csvUpload').click()">📂 Load CSV file</button>
+      <div style="font-size:0.8rem;color:var(--ink4);margin-top:0.5rem">or load from your last profiled CSV</div>
+      <button class="btn btn-ghost btn-sm" onclick="loadFromCache()">Load cached data</button>
+    </div>
+
+    <div id="tableView" style="display:none;flex:1;overflow:hidden;flex-direction:column">
+      <div class="table-container" id="tableContainer">
+        <table class="data-table" id="dataTable">
+          <thead id="tableHead"></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+      <div class="pagination" id="pagination"></div>
+    </div>
+
+    <div id="diffView" style="display:none;flex:1;overflow:hidden">
+      <div class="diff-container" id="diffContainer"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+const API = 'https://api.pipebase.app';
+let currentUser = null;
+let rawRows = [];
+let transformedRows = [];
+let filteredRows = [];
+let currentView = 'raw';
+let currentPage = 1;
+const PAGE_SIZE = 100;
+let visibleCols = [];
+let allCols = [];
+let sortCol = null;
+let sortDir = 1;
+
+// ── INIT ──────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  const token = localStorage.getItem('pb_token');
+  if (!token) { window.location.href = '/'; return; }
+  try {
+    const res = await apiFetch('/api/auth/me');
+    currentUser = res.user;
+    document.getElementById('sidebarAvatar').textContent = (currentUser.name||currentUser.email).charAt(0).toUpperCase();
+    document.getElementById('sidebarName').textContent = currentUser.name||currentUser.email.split('@')[0];
+    document.getElementById('pageLoader').style.display = 'none';
+    document.getElementById('appShell').style.display = 'flex';
+    // Try to load from cache automatically
+    loadFromCache();
+  } catch { localStorage.removeItem('pb_token'); window.location.href = '/'; }
+});
+
+// ── LOAD CSV ──────────────────────────────────────────────────────
+function loadCSV(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  showToast('Loading ' + file.name + '...', '');
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    parseAndLoad(e.target.result, file.name);
+  };
+  reader.readAsText(file);
+}
+
+function loadFromCache() {
+  if (!currentUser) return;
+  const cache = localStorage.getItem('pb_csv_cache_' + currentUser._id);
+  if (!cache) { return; }
+  try {
+    const data = JSON.parse(cache);
+    if (data.rows && data.rows.length) {
+      // Use cached rows
+      rawRows = data.rows;
+      processData(data.filename || 'cached_data.csv');
+      showToast('Loaded ' + rawRows.length + ' rows from cache', 'success');
+    }
+  } catch(e) {}
+}
+
+function parseAndLoad(csvText, filename) {
+  const lines = csvText.trim().replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n').filter(l=>l.trim());
+  if (lines.length < 2) { showToast('CSV must have headers and data', 'error'); return; }
+
+  const headers = parseCSVLine(lines[0]).map(h => h.replace(/^"|"$/g,'').trim());
+  rawRows = lines.slice(1).map((line, idx) => {
+    const vals = parseCSVLine(line).map(v => v.replace(/^"|"$/g,'').trim());
+    const row = { _row_num: idx + 1 };
+    headers.forEach((h, i) => row[h] = vals[i] ?? '');
+    return row;
+  });
+
+  // Also cache for runner
+  if (currentUser) {
+    const step = Math.max(1, Math.floor(rawRows.length / 200));
+    const sampleRows = rawRows.filter((_,i) => i % step === 0).slice(0,200);
+    localStorage.setItem('pb_csv_cache_' + currentUser._id, JSON.stringify({
+      filename, headers, rows: sampleRows, totalRows: rawRows.length, cachedAt: new Date().toISOString()
+    }));
+  }
+
+  processData(filename);
+}
+
+function parseCSVLine(line) {
+  const result = [];
+  let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') { if (inQ && line[i+1]==='"') { cur+='"'; i++; } else inQ=!inQ; }
+    else if (ch===',' && !inQ) { result.push(cur); cur=''; }
+    else cur += ch;
+  }
+  result.push(cur);
+  return result;
+}
+
+function processData(filename) {
+  // Generate transformed rows
+  transformedRows = rawRows.map(row => applyTransformations(row));
+
+  // Set up columns
+  allCols = Object.keys(rawRows[0] || {}).filter(c => c !== '_row_num');
+  visibleCols = [...allCols];
+
+  // Populate filters
+  populateFilters();
+  renderColToggles();
+  updateStats();
+
+  document.getElementById('datasetLabel').textContent = filename + ' — ' + rawRows.length.toLocaleString() + ' rows';
+  document.getElementById('uploadPrompt').style.display = 'none';
+  document.getElementById('statsRow').style.display = 'flex';
+  document.getElementById('toolbar').style.display = 'flex';
+
+  filteredRows = currentView === 'transformed' ? [...transformedRows] : [...rawRows];
+  currentPage = 1;
+  renderCurrentView();
+}
+
+// ── TRANSFORMATIONS ───────────────────────────────────────────────
+function applyTransformations(row) {
+  const t = { ...row };
+
+  // 1. Split listed_in into primary_genre and genre_count
+  if (t.listed_in) {
+    const genres = t.listed_in.split(',').map(g => g.trim());
+    t.primary_genre = genres[0];
+    t.genre_count = genres.length;
+    delete t.listed_in;
+  }
+
+  // 2. Parse duration into value and unit
+  if (t.duration) {
+    const match = t.duration.match(/^(\d+)\s*(min|Season)/i);
+    if (match) {
+      t.duration_value = parseInt(match[1]);
+      t.duration_unit = match[2].toLowerCase().startsWith('season') ? 'seasons' : 'min';
+    }
+    delete t.duration;
+  }
+
+  // 3. Extract year and month from date_added
+  if (t.date_added && t.date_added.trim()) {
+    const d = new Date(t.date_added);
+    if (!isNaN(d)) {
+      t.year_added = d.getFullYear();
+      t.month_added = d.getMonth() + 1;
+    }
+  }
+
+  // 4. Flag recent content (2020+)
+  t.is_recent = (parseInt(t.release_year) || 0) >= 2020 ? 'true' : 'false';
+
+  // 5. Fill nulls
+  if (!t.director || t.director.trim() === '') t.director = 'Unknown';
+  if (!t.country || t.country.trim() === '') t.country = 'Unknown';
+  if (!t.cast || t.cast.trim() === '') t.cast = 'Unknown';
+
+  // 6. Rating category
+  if (t.rating) {
+    t.rating_category = ['TV-MA','R','NC-17'].includes(t.rating) ? 'ADULT' : 'FAMILY';
+  }
+
+  // 7. Normalize type
+  if (t.type) t.content_type = t.type.toUpperCase().replace(' ', '_');
+
+  return t;
+}
+
+// ── VIEWS ─────────────────────────────────────────────────────────
+function switchView(view) {
+  currentView = view;
+  document.querySelectorAll('.view-tab,.nav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + view)?.classList.add('active');
+  document.getElementById('nav-' + view)?.classList.add('active');
+  const labels = { raw:'Raw data', transformed:'Transformed', diff:'Before / After diff' };
+  document.getElementById('viewLabel').textContent = labels[view];
+
+  if (!rawRows.length) return;
+
+  if (view === 'diff') {
+    document.getElementById('tableView').style.display = 'none';
+    document.getElementById('diffView').style.display = 'flex';
+    renderDiffView();
+  } else {
+    document.getElementById('tableView').style.display = 'flex';
+    document.getElementById('diffView').style.display = 'none';
+    filteredRows = view === 'transformed' ? [...transformedRows] : [...rawRows];
+    applyFilters();
+  }
+  updateStats();
+}
+
+// ── RENDER TABLE ──────────────────────────────────────────────────
+function renderCurrentView() {
+  if (currentView === 'diff') { renderDiffView(); return; }
+  document.getElementById('tableView').style.display = 'flex';
+  document.getElementById('diffView').style.display = 'none';
+
+  const cols = currentView === 'transformed'
+    ? Object.keys(transformedRows[0] || {}).filter(c => c !== '_row_num')
+    : visibleCols;
+
+  const transformedColSet = new Set(Object.keys(transformedRows[0] || {}).filter(c => c !== '_row_num'));
+  const rawColSet = new Set(allCols);
+  const newCols = [...transformedColSet].filter(c => !rawColSet.has(c));
+  const changedCols = allCols.filter(c => {
+    // Cols that exist in both but might have different values
+    return ['director','country','cast'].includes(c);
+  });
+
+  // Headers
+  const thead = document.getElementById('tableHead');
+  thead.innerHTML = '<tr><th class="row-num">#</th>' + cols.map(col => {
+    const isNew = newCols.includes(col);
+    const isSort = sortCol === col;
+    return `<th onclick="sortBy('${col}')" class="${isSort?'sorted':''}" style="${isNew?'color:var(--green)':''}">
+      ${col.replace(/_/g,' ')}${isNew?' ✦':''}
+      <span class="sort-icon">${isSort?(sortDir>0?'↑':'↓'):'↕'}</span>
+    </th>`;
+  }).join('') + '</tr>';
+
+  // Rows
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pageRows = filteredRows.slice(start, start + PAGE_SIZE);
+  const tbody = document.getElementById('tableBody');
+
+  tbody.innerHTML = pageRows.map((row, idx) => {
+    const rawRow = currentView === 'transformed' ? rawRows[row._row_num - 1] : null;
+    return '<tr>' +
+      `<td class="row-num">${row._row_num || (start + idx + 1)}</td>` +
+      cols.map(col => {
+        const val = row[col];
+        const isEmpty = val === '' || val === null || val === undefined;
+        const isNew = newCols.includes(col);
+        const isChanged = rawRow && rawRow[col] !== undefined && rawRow[col] !== val;
+        let cls = '';
+        if (isEmpty) cls = 'cell-null';
+        else if (isNew) cls = 'cell-new';
+        else if (isChanged) cls = 'cell-changed';
+        return `<td class="${cls}" title="${escHtml(String(val??''))}">${isEmpty ? '<em style="color:var(--ink4)">null</em>' : escHtml(String(val))}</td>`;
+      }).join('') +
+      '</tr>';
+  }).join('');
+
+  renderPagination();
+  document.getElementById('statShowing').textContent = `${start+1}–${Math.min(start+PAGE_SIZE, filteredRows.length)} of ${filteredRows.length.toLocaleString()}`;
+}
+
+// ── DIFF VIEW ─────────────────────────────────────────────────────
+function renderDiffView() {
+  const container = document.getElementById('diffContainer');
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pageRows = filteredRows.slice(start, start + PAGE_SIZE);
+
+  const rawCols = allCols;
+  const transCols = Object.keys(transformedRows[0] || {}).filter(c => c !== '_row_num');
+  const newCols = new Set(transCols.filter(c => !new Set(allCols).has(c)));
+  const removedCols = new Set(allCols.filter(c => !new Set(transCols).has(c)));
+
+  const makeTable = (rows, cols, isAfter) => {
+    const headerRow = '<tr><th class="row-num">#</th>' + cols.map(col => {
+      const isNew = newCols.has(col);
+      const isRemoved = removedCols.has(col);
+      return `<th style="${isNew?'color:var(--green)':isRemoved?'color:var(--red);text-decoration:line-through':''}">${col.replace(/_/g,' ')}${isNew?' ✦':isRemoved?' ✕':''}</th>`;
+    }).join('') + '</tr>';
+
+    const bodyRows = rows.map((row, idx) => {
+      const rawRow = rawRows[row._row_num - 1] || {};
+      return '<tr>' +
+        `<td class="row-num">${row._row_num || (start+idx+1)}</td>` +
+        cols.map(col => {
+          const val = row[col];
+          const isEmpty = val === '' || val === null || val === undefined;
+          const isNew = newCols.has(col);
+          const wasChanged = isAfter && rawRow[col] !== undefined && rawRow[col] !== val;
+          let cls = '';
+          if (isEmpty) cls = 'cell-null';
+          else if (isNew) cls = 'cell-new';
+          else if (wasChanged) cls = 'cell-changed';
+          return `<td class="${cls}" title="${escHtml(String(val??''))}">${isEmpty?'<em style="color:var(--ink4)">null</em>':escHtml(String(val))}</td>`;
+        }).join('') + '</tr>';
+    }).join('');
+
+    return `<table class="data-table"><thead>${headerRow}</thead><tbody>${bodyRows}</tbody></table>`;
+  };
+
+  const afterRows = pageRows.map(r => transformedRows[r._row_num - 1] || r);
+
+  container.innerHTML = `
+    <div class="diff-pane">
+      <div class="diff-pane-header before">
+        📋 Before — Raw data
+        <span style="margin-left:auto;font-size:0.72rem;color:var(--ink4)">${rawCols.length} columns</span>
+      </div>
+      <div class="diff-table-wrap" id="diffLeft" onscroll="syncScroll('left')">${makeTable(pageRows, rawCols, false)}</div>
+    </div>
+    <div class="diff-pane">
+      <div class="diff-pane-header after">
+        ⚙️ After — Transformed
+        <span style="margin-left:auto;font-size:0.72rem;color:var(--ink4)">${transCols.length} columns <span style="color:var(--green)">+${newCols.size} new</span></span>
+      </div>
+      <div class="diff-table-wrap" id="diffRight" onscroll="syncScroll('right')">${makeTable(afterRows, transCols, true)}</div>
+    </div>`;
+
+  // Sync scroll between panels
+  renderPagination();
+  document.getElementById('statShowing').textContent = `${start+1}–${Math.min(start+PAGE_SIZE, filteredRows.length)} of ${filteredRows.length.toLocaleString()}`;
+}
+
+let isSyncing = false;
+function syncScroll(side) {
+  if (isSyncing) return;
+  isSyncing = true;
+  const left = document.getElementById('diffLeft');
+  const right = document.getElementById('diffRight');
+  if (!left || !right) { isSyncing=false; return; }
+  if (side === 'left') right.scrollTop = left.scrollTop;
+  else left.scrollTop = right.scrollTop;
+  setTimeout(() => isSyncing = false, 50);
+}
+
+// ── FILTERS ───────────────────────────────────────────────────────
+function populateFilters() {
+  // Country filter
+  const countries = [...new Set(rawRows.map(r => r.country).filter(Boolean))].sort();
+  const colFilter = document.getElementById('colFilter');
+  colFilter.innerHTML = '<option value="">All countries</option>' +
+    countries.map(c => `<option value="${escHtml(c)}">${escHtml(c)}</option>`).join('');
+
+  // Type filter - only show if type column exists
+  const typeFilter = document.getElementById('typeFilter');
+  if (!allCols.includes('type')) typeFilter.style.display = 'none';
+}
+
+function applyFilters() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const typeF = document.getElementById('typeFilter').value;
+  const colF = document.getElementById('colFilter').value;
+
+  const source = currentView === 'transformed' ? transformedRows : rawRows;
+
+  filteredRows = source.filter(row => {
+    if (typeF && row.type !== typeF) return false;
+    if (colF && row.country !== colF) return false;
+    if (search) {
+      return Object.values(row).some(v => String(v||'').toLowerCase().includes(search));
+    }
+    return true;
+  });
+
+  // Apply sort
+  if (sortCol) {
+    filteredRows.sort((a,b) => {
+      const av = String(a[sortCol]||'').toLowerCase();
+      const bv = String(b[sortCol]||'').toLowerCase();
+      return av < bv ? -sortDir : av > bv ? sortDir : 0;
+    });
+  }
+
+  currentPage = 1;
+  renderCurrentView();
+  document.getElementById('statShowing').textContent = filteredRows.length.toLocaleString() + ' rows';
+}
+
+function sortBy(col) {
+  if (sortCol === col) sortDir *= -1;
+  else { sortCol = col; sortDir = 1; }
+  applyFilters();
+}
+
+// ── COLUMN TOGGLES ────────────────────────────────────────────────
+function renderColToggles() {
+  const wrap = document.getElementById('colToggle');
+  wrap.innerHTML = allCols.map(col => `
+    <div class="col-chip ${visibleCols.includes(col)?'active':''}" onclick="toggleCol('${col}')">${col.replace(/_/g,' ')}</div>`).join('');
+}
+
+function toggleCol(col) {
+  if (visibleCols.includes(col)) {
+    if (visibleCols.length <= 2) return; // Keep at least 2 cols
+    visibleCols = visibleCols.filter(c => c !== col);
+  } else {
+    visibleCols.push(col);
+  }
+  renderColToggles();
+  renderCurrentView();
+}
+
+// ── STATS ─────────────────────────────────────────────────────────
+function updateStats() {
+  const rows = rawRows;
+  const tRows = transformedRows;
+  if (!rows.length) return;
+
+  document.getElementById('statRows').textContent = rows.length.toLocaleString();
+  document.getElementById('statCols').textContent = allCols.length;
+
+  const rawColSet = new Set(allCols);
+  const transColSet = new Set(Object.keys(tRows[0]||{}).filter(c=>c!=='_row_num'));
+  const newCols = [...transColSet].filter(c => !rawColSet.has(c));
+  document.getElementById('statNewCols').textContent = '+' + newCols.length;
+
+  // Count nulls in raw data
+  let nullCount = 0;
+  rows.forEach(row => { allCols.forEach(col => { if (!row[col] || row[col].trim()==='') nullCount++; }); });
+  document.getElementById('statNulls').textContent = nullCount.toLocaleString();
+}
+
+// ── PAGINATION ────────────────────────────────────────────────────
+function renderPagination() {
+  const totalPages = Math.ceil(filteredRows.length / PAGE_SIZE);
+  const pag = document.getElementById('pagination');
+  if (!pag) return;
+
+  let pages = '';
+  const range = 3;
+  for (let i = 1; i <= totalPages; i++) {
+    if (i === 1 || i === totalPages || (i >= currentPage - range && i <= currentPage + range)) {
+      pages += `<button class="page-btn ${i===currentPage?'active':''}" onclick="goToPage(${i})">${i}</button>`;
+    } else if (i === currentPage - range - 1 || i === currentPage + range + 1) {
+      pages += '<span style="color:var(--ink4);padding:0 4px">...</span>';
+    }
+  }
+
+  pag.innerHTML = `
+    <span class="page-info">${filteredRows.length.toLocaleString()} rows · Page ${currentPage} of ${totalPages} · ${PAGE_SIZE} per page</span>
+    <button class="page-btn" onclick="goToPage(1)" ${currentPage===1?'disabled':''}>«</button>
+    <button class="page-btn" onclick="goToPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>
+    ${pages}
+    <button class="page-btn" onclick="goToPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>›</button>
+    <button class="page-btn" onclick="goToPage(${totalPages})" ${currentPage===totalPages?'disabled':''}>»</button>`;
+}
+
+function goToPage(page) {
+  const totalPages = Math.ceil(filteredRows.length / PAGE_SIZE);
+  currentPage = Math.max(1, Math.min(page, totalPages));
+  renderCurrentView();
+  document.getElementById('tableContainer')?.scrollTo(0, 0);
+}
+
+// ── EXPORT ────────────────────────────────────────────────────────
+function exportCurrentView() {
+  const rows = currentView === 'transformed' ? transformedRows : filteredRows;
+  const cols = currentView === 'transformed'
+    ? Object.keys(transformedRows[0]||{}).filter(c=>c!=='_row_num')
+    : allCols;
+  const csv = [cols.join(','), ...rows.map(r => cols.map(c => `"${String(r[c]||'').replace(/"/g,'""')}"`).join(','))].join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `pipebase_${currentView}_${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+  showToast('Exported ' + rows.length.toLocaleString() + ' rows', 'success');
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────
+async function apiFetch(path, options={}) {
+  const headers = {'Content-Type':'application/json'};
+  const token = localStorage.getItem('pb_token');
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const res = await fetch(API+path, {...options, headers:{...headers,...options.headers}});
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error||'Request failed');
+  return data;
+}
+function logout() { localStorage.removeItem('pb_token'); window.location.href='/'; }
+function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function showToast(msg,type='') {
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast'+(type?' '+type:'');
+  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);
+}
+</script>
+</body>
+</html>
