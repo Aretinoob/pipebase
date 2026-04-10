@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Architecture Docs — Pipebase</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0d0d14;--ink2:#3a3a4a;--ink3:#7a7a8a;--ink4:#b0b0bc;--wire:#e4e4ef;--wire2:#f0f0f8;--bg:#fff;--surface:#f8f8fc;--surface2:#f2f2f8;--accent:#4338f5;--glow:rgba(67,56,245,0.12);--green:#059669;--amber:#d97706;--red:#dc2626;--purple:#7c3aed;--sidebar-w:240px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',-apple-system,system-ui,sans-serif;color:var(--ink);background:var(--surface);-webkit-font-smoothing:antialiased;}
+button,input{font-family:inherit;}
+.sidebar{background:#0d0d14;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);z-index:50;overflow-y:auto;}
+.main{margin-left:var(--sidebar-w);min-height:100vh;display:flex;flex-direction:column;}
+.topbar{background:var(--bg);border-bottom:1px solid var(--wire);padding:0 2rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40;}
+.page-content{flex:1;padding:2rem;max-width:1000px;}
+.nav-top{padding:1.1rem 0.875rem 0.75rem;border-bottom:1px solid rgba(255,255,255,0.06);}
+.nav-brand{display:flex;align-items:center;gap:0.5rem;}
+.nav-brand-icon{width:26px;height:26px;background:var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.8rem;}
+.nav-brand-name{font-size:0.9rem;font-weight:800;color:#fff;}
+.nav-brand-name span{color:#818cf8;}
+.nav-links{flex:1;padding:0.5rem 0;}
+.nav-sec{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,0.22);padding:0.65rem 0.875rem 0.3rem;}
+.nav-btn{display:flex;align-items:center;gap:0.55rem;padding:0.45rem 0.875rem;font-size:0.8rem;font-weight:500;color:rgba(255,255,255,0.5);border:none;background:none;width:100%;text-align:left;cursor:pointer;transition:all .15s;}
+.nav-btn:hover{color:rgba(255,255,255,0.85);background:rgba(255,255,255,0.05);}
+.nav-btn.active{color:#fff;background:rgba(255,255,255,0.08);border-left:2px solid #818cf8;}
+.nav-btn .ic{font-size:0.85rem;width:16px;text-align:center;}
+.nav-foot{padding:0.65rem 0.875rem;border-top:1px solid rgba(255,255,255,0.06);margin-top:auto;display:flex;align-items:center;gap:0.5rem;}
+.nav-av{width:26px;height:26px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;color:#fff;}
+.nav-un{font-size:0.78rem;font-weight:600;color:rgba(255,255,255,0.75);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.nav-lo{background:none;border:none;color:rgba(255,255,255,0.3);font-size:0.72rem;cursor:pointer;}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:0.45rem 0.875rem;border-radius:8px;font-size:0.82rem;font-weight:600;border:none;cursor:pointer;transition:all .15s;}
+.btn-primary{background:var(--accent);color:#fff;}.btn-primary:hover{background:#3730e0;}
+.btn-secondary{background:var(--surface2);color:var(--ink);border:1px solid var(--wire);}.btn-secondary:hover{background:var(--wire2);}
+.btn-ghost{background:transparent;color:var(--ink2);border:1px solid var(--wire);}.btn-ghost:hover{background:var(--surface);}
+.btn-sm{padding:0.3rem 0.65rem;font-size:0.75rem;}
+.spin{width:16px;height:16px;border:2px solid var(--wire);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(12px);background:var(--ink);color:#fff;padding:0.6rem 1.1rem;border-radius:9px;font-size:0.82rem;font-weight:500;z-index:200;opacity:0;transition:all .25s;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.success{background:var(--green);}.toast.error{background:var(--red);}
+.pl{position:fixed;inset:0;background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;z-index:999;}
+.pls{width:32px;height:32px;border:3px solid var(--wire);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+
+/* DOCS STYLES */
+.doc-header{background:linear-gradient(135deg,#0d0d14,#1e1b4b);border-radius:14px;padding:2.5rem;margin-bottom:2rem;color:#fff;}
+.doc-title{font-size:1.75rem;font-weight:800;letter-spacing:-0.5px;margin-bottom:0.5rem;}
+.doc-meta{font-size:0.82rem;color:rgba(255,255,255,0.5);display:flex;gap:1.5rem;flex-wrap:wrap;}
+.doc-section{background:var(--bg);border:1px solid var(--wire);border-radius:12px;margin-bottom:1.25rem;overflow:hidden;}
+.doc-section-header{padding:1rem 1.5rem;border-bottom:1px solid var(--wire);display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;}
+.doc-section-header:hover{background:var(--surface);}
+.doc-section-title{font-size:0.9rem;font-weight:700;display:flex;align-items:center;gap:0.625rem;}
+.doc-section-body{padding:1.5rem;line-height:1.8;}
+.doc-body-text{font-size:0.875rem;color:var(--ink2);line-height:1.8;}
+.doc-body-text p{margin-bottom:0.875rem;}
+.doc-body-text p:last-child{margin-bottom:0;}
+
+/* LINEAGE DIAGRAM */
+.lineage-diagram{padding:2rem;overflow-x:auto;}
+.lineage-flow{display:flex;align-items:center;gap:0;min-width:max-content;}
+.lineage-node{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+.lineage-box{padding:1rem 1.5rem;border-radius:12px;border:2px solid;text-align:center;min-width:130px;}
+.lineage-name{font-size:0.875rem;font-weight:800;margin-bottom:0.3rem;}
+.lineage-purpose{font-size:0.72rem;opacity:0.75;max-width:120px;line-height:1.4;}
+.lineage-stats{font-size:0.68rem;margin-top:0.4rem;opacity:0.6;font-family:'JetBrains Mono',monospace;}
+.lineage-arrow{display:flex;flex-direction:column;align-items:center;padding:0 0.75rem;flex-shrink:0;}
+.lineage-arrow-line{width:40px;height:2px;background:var(--wire);}
+.lineage-arrow-head{color:var(--ink3);font-size:0.875rem;margin-top:-2px;}
+.lineage-transform{font-size:0.65rem;color:var(--ink3);text-align:center;margin-top:0.2rem;max-width:80px;}
+
+/* LAYER DOC CARD */
+.layer-doc{border:1px solid var(--wire);border-radius:10px;padding:1.25rem;margin-bottom:0.875rem;border-left:4px solid;}
+.layer-doc-name{font-size:0.95rem;font-weight:800;margin-bottom:0.35rem;}
+.layer-doc-overview{font-size:0.82rem;color:var(--ink2);margin-bottom:0.875rem;line-height:1.6;}
+.layer-doc-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.875rem;}
+.layer-doc-section{font-size:0.78rem;}
+.layer-doc-section-title{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--ink3);margin-bottom:0.3rem;}
+.layer-doc-section-body{color:var(--ink2);line-height:1.6;}
+
+/* GLOSSARY */
+.glossary-item{display:flex;gap:1rem;padding:0.75rem 0;border-bottom:1px solid var(--wire2);}
+.glossary-item:last-child{border-bottom:none;}
+.glossary-term{font-weight:700;font-size:0.82rem;min-width:150px;color:var(--accent);}
+.glossary-def{font-size:0.82rem;color:var(--ink2);}
+
+/* RUNBOOK */
+.runbook-section{margin-bottom:1.25rem;}
+.runbook-title{font-size:0.82rem;font-weight:700;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.5rem;}
+.runbook-body{font-size:0.82rem;color:var(--ink2);line-height:1.7;}
+.runbook-issue{padding:0.625rem 0.875rem;background:var(--surface);border-radius:7px;border-left:3px solid var(--amber);margin-bottom:0.5rem;font-size:0.8rem;color:var(--ink2);}
+
+/* EMPTY STATE */
+.empty-docs{text-align:center;padding:4rem 2rem;}
+.empty-docs-icon{font-size:3rem;opacity:0.25;margin-bottom:1rem;}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<div class="pl" id="pl"><div class="pls"></div><div style="font-size:0.875rem;color:var(--ink3)">Loading documentation...</div></div>
+
+<div id="appShell" style="display:none">
+<aside class="sidebar">
+  <div class="nav-top">
+    <div class="nav-brand"><div class="nav-brand-icon">⚡</div><div class="nav-brand-name">Pipe<span>base</span></div></div>
+  </div>
+  <div class="nav-links">
+    <div class="nav-sec">Architecture</div>
+    <button class="nav-btn" onclick="go('architecture.html')"><span class="ic">🏛️</span> All Architectures</button>
+    <button class="nav-btn" onclick="goEditor()"><span class="ic">🔧</span> Layer Editor</button>
+    <button class="nav-btn active"><span class="ic">📋</span> Documentation</button>
+    <button class="nav-btn" onclick="go('approvals.html'+(archId?'?arch='+archId:''))"><span class="ic">✅</span> Approvals</button>
+    <div class="nav-sec">Platform</div>
+    <button class="nav-btn" onclick="go('data-viewer.html')"><span class="ic">📊</span> Data Viewer</button>
+    <button class="nav-btn" onclick="go('connectors.html')"><span class="ic">🔌</span> Connectors</button>
+    <button class="nav-btn" onclick="go('dashboard.html')"><span class="ic">📊</span> Dashboard</button>
+  </div>
+  <div class="nav-foot">
+    <div class="nav-av" id="navAv">?</div>
+    <div class="nav-un" id="navUn">...</div>
+    <button class="nav-lo" onclick="logout()">↩</button>
+  </div>
+</aside>
+
+<div class="main">
+  <header class="topbar">
+    <div style="display:flex;align-items:center;gap:0.875rem">
+      <button class="btn btn-ghost btn-sm" onclick="goEditor()">← Back to editor</button>
+      <span style="font-size:0.875rem;font-weight:700" id="archNameLabel">Documentation</span>
+    </div>
+    <div style="display:flex;gap:0.5rem">
+      <button class="btn btn-secondary btn-sm" onclick="exportMarkdown()">⬇ Export Markdown</button>
+      <button class="btn btn-primary btn-sm" onclick="generateDocs()" id="genBtn">🧠 Regenerate docs</button>
+    </div>
+  </header>
+
+  <div class="page-content">
+    <div id="docsContent">
+      <div class="empty-docs">
+        <div class="empty-docs-icon">📋</div>
+        <div style="font-size:1rem;font-weight:700;color:var(--ink);margin-bottom:0.5rem">No documentation yet</div>
+        <div style="font-size:0.875rem;color:var(--ink3);margin-bottom:1.5rem;max-width:40ch;margin-left:auto;margin-right:auto">Generate AI documentation for your architecture. It will create a full technical spec, data dictionary, lineage diagram, and runbook.</div>
+        <button class="btn btn-primary" onclick="generateDocs()">🧠 Generate documentation</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+const API = 'https://api.pipebase.app';
+const params = new URLSearchParams(window.location.search);
+const archId = params.get('arch');
+let user = null;
+let architecture = null;
+let archLayers = [];
+let currentDocs = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const token = localStorage.getItem('pb_token');
+  if (!token) return go('/');
+  try {
+    const r = await api('/api/auth/me');
+    user = r.user;
+    document.getElementById('navAv').textContent = (user.name||user.email)[0].toUpperCase();
+    document.getElementById('navUn').textContent = user.name||user.email.split('@')[0];
+    if (archId) {
+      const ar = await api(`/api/medallion/${archId}`);
+      architecture = ar.architecture;
+      archLayers = ar.layers || [];
+      document.getElementById('archNameLabel').textContent = architecture.name + ' — Docs';
+      await loadDocs();
+    }
+    document.getElementById('pl').style.display = 'none';
+    document.getElementById('appShell').style.display = 'block';
+  } catch { localStorage.removeItem('pb_token'); go('/'); }
+});
+
+async function loadDocs() {
+  try {
+    const r = await api(`/api/medallion/${archId}/docs`);
+    currentDocs = r.docs;
+    renderDocs(r.docs, r.generatedAt);
+  } catch(e) {
+    // No docs yet - show empty state
+  }
+}
+
+async function generateDocs() {
+  const btn = document.getElementById('genBtn');
+  btn.disabled = true; btn.innerHTML = '<div class="spin"></div> AI generating...';
+  document.getElementById('docsContent').innerHTML = `
+    <div style="text-align:center;padding:4rem;color:var(--ink3)">
+      <div class="spin" style="margin:0 auto 1rem;width:32px;height:32px;border-width:3px"></div>
+      <div style="font-size:0.875rem;font-weight:600;color:var(--ink);margin-bottom:0.35rem">AI is writing your documentation</div>
+      <div style="font-size:0.8rem">This takes 15-20 seconds. Analyzing all ${archLayers.length} layers...</div>
+    </div>`;
+  try {
+    const r = await api(`/api/medallion/${archId}/generate-docs`, { method:'POST' });
+    currentDocs = r.docs;
+    renderDocs(r.docs, new Date().toISOString());
+    toast('Documentation generated!', 'success');
+  } catch(err) {
+    document.getElementById('docsContent').innerHTML = `<div style="padding:2rem;color:var(--red)">Failed: ${esc(err.message)}</div>`;
+    toast('Generation failed: ' + err.message, 'error');
+  }
+  btn.disabled = false; btn.textContent = '🧠 Regenerate docs';
+}
+
+function renderDocs(docs, generatedAt) {
+  const content = document.getElementById('docsContent');
+  const genDate = new Date(generatedAt).toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' });
+
+  content.innerHTML = `
+    <!-- Header -->
+    <div class="doc-header">
+      <div class="doc-title">📋 ${esc(architecture?.name || 'Architecture')} Documentation</div>
+      <div style="font-size:0.82rem;color:rgba(255,255,255,0.65);margin-bottom:1rem">${esc(architecture?.domain||'')} · ${archLayers.length} layers · ${architecture?.governanceLevel} governance</div>
+      <div class="doc-meta">
+        <span>📅 Generated ${genDate}</span>
+        <span>🤖 AI-generated, human-reviewed</span>
+        <span>📊 ${archLayers.filter(l=>l.status==='approved').length}/${archLayers.length} layers approved</span>
+      </div>
+    </div>
+
+    <!-- Executive Summary -->
+    <div class="doc-section">
+      <div class="doc-section-header" onclick="toggleSection('exec')">
+        <div class="doc-section-title">📊 Executive Summary <span style="font-size:0.72rem;font-weight:400;color:var(--ink3)">For business stakeholders</span></div>
+        <span id="exec-arrow">▾</span>
+      </div>
+      <div id="exec" class="doc-section-body doc-body-text">
+        ${(docs.executive_summary||'').split('\n\n').map(p=>`<p>${esc(p)}</p>`).join('')}
+      </div>
+    </div>
+
+    <!-- Architecture Overview -->
+    <div class="doc-section">
+      <div class="doc-section-header" onclick="toggleSection('arch')">
+        <div class="doc-section-title">🏛️ Architecture Overview <span style="font-size:0.72rem;font-weight:400;color:var(--ink3)">Technical design decisions</span></div>
+        <span id="arch-arrow">▾</span>
+      </div>
+      <div id="arch" class="doc-section-body doc-body-text">
+        ${(docs.architecture_overview||'').split('\n\n').map(p=>`<p>${esc(p)}</p>`).join('')}
+      </div>
+    </div>
+
+    <!-- Data Lineage -->
+    <div class="doc-section">
+      <div class="doc-section-header" onclick="toggleSection('lineage')">
+        <div class="doc-section-title">🔀 Data Lineage Diagram</div>
+        <span id="lineage-arrow">▾</span>
+      </div>
+      <div id="lineage" class="doc-section-body" style="padding:0">
+        <div class="lineage-diagram">
+          <div class="lineage-flow">
+            <div class="lineage-node">
+              <div class="lineage-box" style="border-color:#64748b;background:rgba(100,116,139,0.08)">
+                <div class="lineage-name" style="color:#475569">📂 Source</div>
+                <div class="lineage-purpose" style="color:#64748b">${esc(architecture?.sourceName||'Raw data')}</div>
+              </div>
+            </div>
+            ${archLayers.map((l,i) => `
+              <div class="lineage-arrow">
+                <div style="display:flex;align-items:center;gap:0">
+                  <div class="lineage-arrow-line"></div>
+                  <div class="lineage-arrow-head">→</div>
+                </div>
+                <div class="lineage-transform">${esc(l.selectedTool||'transform')}</div>
+              </div>
+              <div class="lineage-node">
+                <div class="lineage-box" style="border-color:${l.color||'#94a3b8'};background:${l.color||'#94a3b8'}20">
+                  <div class="lineage-name" style="color:${l.color||'#94a3b8'}">${esc(l.name)}</div>
+                  <div class="lineage-purpose" style="color:${l.color||'#94a3b8'}cc">${esc((l.purpose||'').slice(0,60))}${(l.purpose||'').length>60?'...':''}</div>
+                  ${l.recordCount?`<div class="lineage-stats">${l.recordCount.toLocaleString()} rows</div>`:''}
+                </div>
+                <div style="font-size:0.65rem;margin-top:0.3rem;color:${l.approvalStatus==='approved'?'var(--green)':'var(--ink4)'}">${l.approvalStatus==='approved'?'✓ Approved':l.status}</div>
+              </div>`).join('')}
+          </div>
+        </div>
+        <div class="doc-section-body doc-body-text" style="border-top:1px solid var(--wire)">
+          ${(docs.data_lineage||'').split('\n\n').map(p=>`<p>${esc(p)}</p>`).join('')}
+        </div>
+      </div>
+    </div>
+
+    <!-- Layer Details -->
+    <div class="doc-section">
+      <div class="doc-section-header" onclick="toggleSection('layers')">
+        <div class="doc-section-title">🔧 Layer Details <span style="font-size:0.72rem;font-weight:400;color:var(--ink3)">${archLayers.length} layers documented</span></div>
+        <span id="layers-arrow">▾</span>
+      </div>
+      <div id="layers" class="doc-section-body">
+        ${(docs.layers||[]).map((l,i) => {
+          const layer = archLayers.find(al => al.name.toLowerCase() === l.name.toLowerCase()) || archLayers[i] || {};
+          return `
+            <div class="layer-doc" style="border-left-color:${layer.color||'#94a3b8'}">
+              <div class="layer-doc-name" style="color:${layer.color||'#94a3b8'}">${esc(l.name)}</div>
+              <div class="layer-doc-overview">${esc(l.overview||'')}</div>
+              <div class="layer-doc-grid">
+                <div class="layer-doc-section">
+                  <div class="layer-doc-section-title">Transformation rules</div>
+                  <div class="layer-doc-section-body">${esc(l.transformation_rules||'Not defined')}</div>
+                </div>
+                <div class="layer-doc-section">
+                  <div class="layer-doc-section-title">Business value</div>
+                  <div class="layer-doc-section-body">${esc(l.business_value||'')}</div>
+                </div>
+                <div class="layer-doc-section">
+                  <div class="layer-doc-section-title">Data quality</div>
+                  <div class="layer-doc-section-body">${esc(l.data_quality||'')}</div>
+                </div>
+                <div class="layer-doc-section">
+                  <div class="layer-doc-section-title">Tool rationale</div>
+                  <div class="layer-doc-section-body">${esc(l.tool_rationale||'')}</div>
+                </div>
+              </div>
+            </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <!-- Governance -->
+    <div class="doc-section">
+      <div class="doc-section-header" onclick="toggleSection('gov')">
+        <div class="doc-section-title">🔐 Governance & Approval</div>
+        <span id="gov-arrow">▾</span>
+      </div>
+      <div id="gov" class="doc-section-body doc-body-text">
+        ${(docs.governance||'').split('\n\n').map(p=>`<p>${esc(p)}</p>`).join('')}
+      </div>
+    </div>
+
+    <!-- Runbook -->
+    <div class="doc-section">
+      <div class="doc-section-header" onclick="toggleSection('runbook')">
+        <div class="doc-section-title">📖 Operations Runbook <span style="font-size:0.72rem;font-weight:400;color:var(--ink3)">For the ops team</span></div>
+        <span id="runbook-arrow">▾</span>
+      </div>
+      <div id="runbook" class="doc-section-body">
+        ${docs.runbook ? `
+          <div class="runbook-section">
+            <div class="runbook-title">📅 Daily operations</div>
+            <div class="runbook-body">${esc(docs.runbook.daily_operations||'')}</div>
+          </div>
+          <div class="runbook-section">
+            <div class="runbook-title">🚨 Incident response</div>
+            <div class="runbook-body">${esc(docs.runbook.incident_response||'')}</div>
+          </div>
+          <div class="runbook-section">
+            <div class="runbook-title">🔧 Common issues</div>
+            ${(docs.runbook.common_issues||[]).map(issue=>`<div class="runbook-issue">${esc(issue)}</div>`).join('')}
+          </div>` : '<div style="color:var(--ink3);font-size:0.82rem">Runbook not generated</div>'}
+      </div>
+    </div>
+
+    <!-- Glossary -->
+    <div class="doc-section">
+      <div class="doc-section-header" onclick="toggleSection('glossary')">
+        <div class="doc-section-title">📚 Data Glossary <span style="font-size:0.72rem;font-weight:400;color:var(--ink3)">${(docs.glossary||[]).length} terms</span></div>
+        <span id="glossary-arrow">▾</span>
+      </div>
+      <div id="glossary" class="doc-section-body" style="padding:0.75rem 1.5rem">
+        ${(docs.glossary||[]).map(g=>`
+          <div class="glossary-item">
+            <div class="glossary-term">${esc(g.term)}</div>
+            <div class="glossary-def">${esc(g.definition)}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function toggleSection(id) {
+  const el = document.getElementById(id);
+  const arrow = document.getElementById(id+'-arrow');
+  if (!el) return;
+  const isHidden = el.style.display === 'none';
+  el.style.display = isHidden ? '' : 'none';
+  if (arrow) arrow.textContent = isHidden ? '▾' : '▸';
+}
+
+function exportMarkdown() {
+  if (!currentDocs) { toast('Generate docs first', 'warn'); return; }
+  const d = currentDocs;
+  let md = `# ${architecture?.name || 'Architecture'} Documentation\n\n`;
+  md += `> Generated by Pipebase · ${new Date().toLocaleDateString()}\n\n`;
+  md += `## Executive Summary\n\n${d.executive_summary||''}\n\n`;
+  md += `## Architecture Overview\n\n${d.architecture_overview||''}\n\n`;
+  md += `## Data Lineage\n\n${d.data_lineage||''}\n\n`;
+  md += `## Layers\n\n`;
+  (d.layers||[]).forEach(l => {
+    md += `### ${l.name}\n\n${l.overview||''}\n\n`;
+    md += `**Transformation rules:** ${l.transformation_rules||''}\n\n`;
+    md += `**Business value:** ${l.business_value||''}\n\n`;
+    md += `**Data quality:** ${l.data_quality||''}\n\n`;
+  });
+  md += `## Governance\n\n${d.governance||''}\n\n`;
+  if (d.runbook) {
+    md += `## Operations Runbook\n\n### Daily Operations\n${d.runbook.daily_operations||''}\n\n`;
+    md += `### Incident Response\n${d.runbook.incident_response||''}\n\n`;
+    md += `### Common Issues\n${(d.runbook.common_issues||[]).map(i=>'- '+i).join('\n')}\n\n`;
+  }
+  md += `## Glossary\n\n${(d.glossary||[]).map(g=>`**${g.term}:** ${g.definition}`).join('\n\n')}\n`;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([md],{type:'text/markdown'}));
+  a.download = `${architecture?.name.replace(/\s+/g,'_')||'architecture'}_docs.md`;
+  a.click();
+  toast('Exported as Markdown', 'success');
+}
+
+function goEditor(){go('layer-editor.html'+(archId?'?arch='+archId:''));}
+async function api(path,opts={}){const h={'Content-Type':'application/json'};const tk=localStorage.getItem('pb_token');if(tk)h['Authorization']=`Bearer ${tk}`;const r=await fetch(API+path,{...opts,headers:{...h,...opts.headers}});const d=await r.json();if(!r.ok)throw new Error(d.error||'Request failed');return d;}
+function go(url){window.location.href=url;}
+function logout(){localStorage.removeItem('pb_token');go('/');}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function toast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast'+(type?' '+type:'');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
+</script>
+</body>
+</html>
