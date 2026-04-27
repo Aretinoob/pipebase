@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Approvals — Pipebase</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-font-smoothing: antialiased; }
+body { font-family: 'Inter', system-ui, sans-serif; background: #0a0a0f; color: #f0f0f8; min-height: 100vh; }
+button, input, textarea, select { font-family: inherit; }
+.app { display: flex; min-height: 100vh; }
+.sb { width: 220px; flex-shrink: 0; background: #111118; border-right: 1px solid rgba(255,255,255,0.07); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; overflow-y: auto; z-index: 10; }
+.sb-top { padding: 1rem; border-bottom: 1px solid rgba(255,255,255,0.07); display: flex; align-items: center; gap: 0.6rem; }
+.sb-logo { width: 28px; height: 28px; background: #6366f1; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-weight: 900; color: #fff; font-size: 0.9rem; flex-shrink: 0; }
+.sb-wm { font-size: 0.95rem; font-weight: 800; color: #f0f0f8; }
+.sb-wm em { font-style: normal; color: #a5b4fc; }
+.sb-sec { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #3a3a50; padding: 0.875rem 0.875rem 0.3rem; }
+.sb-btn { display: flex; align-items: center; gap: 0.5rem; padding: 0.45rem 0.875rem; font-size: 0.8rem; font-weight: 500; color: #6e6e88; border: none; background: none; width: 100%; text-align: left; cursor: pointer; border-left: 2px solid transparent; transition: all .15s; }
+.sb-btn:hover { color: #f0f0f8; background: #1e1e2a; }
+.sb-btn.on { color: #a5b4fc; background: rgba(99,102,241,0.15); border-left-color: #6366f1; }
+.sb-foot { padding: 0.75rem; border-top: 1px solid rgba(255,255,255,0.07); margin-top: auto; display: flex; align-items: center; gap: 0.5rem; }
+.sb-av { width: 26px; height: 26px; border-radius: 50%; background: #4f46e5; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; color: #fff; flex-shrink: 0; }
+.sb-un { font-size: 0.78rem; font-weight: 600; color: #b8b8cc; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.main { flex: 1; margin-left: 220px; display: flex; flex-direction: column; }
+.topbar { background: #111118; border-bottom: 1px solid rgba(255,255,255,0.07); height: 52px; padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 5; }
+.scroll { flex: 1; overflow-y: auto; }
+.pad { padding: 1.5rem; max-width: 1000px; }
+.btn { display: inline-flex; align-items: center; gap: 5px; padding: 0.42rem 0.875rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; border: none; cursor: pointer; transition: all .15s; white-space: nowrap; }
+.btn-p { background: #6366f1; color: #fff; } .btn-p:hover { background: #4f46e5; }
+.btn-g { background: transparent; color: #b8b8cc; border: 1px solid rgba(255,255,255,0.15); } .btn-g:hover { background: #1e1e2a; color: #f0f0f8; }
+.btn-gr { background: #10b981; color: #fff; } .btn-gr:hover { background: #059669; }
+.btn-am { background: #f59e0b; color: #000; }
+.btn-r { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.25); }
+.btn-sm { padding: 0.28rem 0.65rem; font-size: 0.74rem; }
+.btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.fg { margin-bottom: 0.875rem; }
+.fl { display: block; font-size: 0.7rem; font-weight: 700; color: #6e6e88; margin-bottom: 0.28rem; text-transform: uppercase; letter-spacing: 0.4px; }
+.fi { width: 100%; padding: 0.52rem 0.75rem; border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; font-size: 0.85rem; color: #f0f0f8; background: #1e1e2a; transition: border-color .15s; }
+.fi:focus { outline: none; border-color: #6366f1; }
+.fta { min-height: 80px; resize: vertical; line-height: 1.6; }
+.ov { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 100; display: flex; align-items: flex-start; justify-content: center; padding: 2rem 1rem; overflow-y: auto; opacity: 0; pointer-events: none; transition: opacity .2s; }
+.ov.open { opacity: 1; pointer-events: all; }
+.mbox { background: #16161f; border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; width: 100%; max-width: 580px; box-shadow: 0 25px 80px rgba(0,0,0,0.6); transform: scale(0.97); transition: transform .2s; }
+.ov.open .mbox { transform: scale(1); }
+.mhdr { padding: 1rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.07); display: flex; align-items: center; justify-content: space-between; }
+.mtitle { font-size: 0.9rem; font-weight: 700; color: #f0f0f8; }
+.mx { background: none; border: none; color: #6e6e88; cursor: pointer; font-size: 1rem; padding: 4px; border-radius: 4px; }
+.mx:hover { background: #252534; color: #f0f0f8; }
+.mbody { padding: 1.25rem; max-height: 72vh; overflow-y: auto; }
+.mfoot { padding: 0.875rem 1.25rem; border-top: 1px solid rgba(255,255,255,0.07); display: flex; justify-content: flex-end; gap: 0.5rem; }
+.badge { display: inline-flex; align-items: center; font-size: 0.67rem; font-weight: 700; padding: 2px 7px; border-radius: 20px; }
+.bg { background: rgba(16,185,129,0.15); color: #10b981; }
+.ba { background: rgba(245,158,11,0.15); color: #f59e0b; }
+.br { background: rgba(239,68,68,0.15); color: #ef4444; }
+.bd { background: #252534; color: #6e6e88; border: 1px solid rgba(255,255,255,0.1); }
+.spin { width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.15); border-top-color: #6366f1; border-radius: 50%; animation: sp .7s linear infinite; display: inline-block; vertical-align: middle; }
+.spin-lg { width: 28px; height: 28px; border-width: 3px; }
+@keyframes sp { to { transform: rotate(360deg); } }
+.toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(10px); background: #252534; color: #f0f0f8; border: 1px solid rgba(255,255,255,0.12); padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.8rem; font-weight: 500; z-index: 300; opacity: 0; transition: all .25s; pointer-events: none; white-space: nowrap; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.ok { background: #10b981; border-color: transparent; }
+.toast.err { background: #ef4444; border-color: transparent; }
+.toast.warn { background: #f59e0b; border-color: transparent; color: #000; }
+@media (max-width: 768px) { .sb { display: none; } .main { margin-left: 0; } }
+
+
+.ftab { padding: 0.35rem 0.75rem; border-radius: 16px; font-size: 0.75rem; font-weight: 600; border: 1.5px solid rgba(255,255,255,0.12); background: none; cursor: pointer; color: #6e6e88; transition: all .15s; }
+.ftab:hover { border-color: #6366f1; color: #a5b4fc; }
+.ftab.on { border-color: #6366f1; background: rgba(99,102,241,0.2); color: #a5b4fc; }
+.acard { background: #16161f; border: 1px solid rgba(255,255,255,0.07); border-radius: 10px; overflow: hidden; margin-bottom: 0.75rem; }
+.acard.pd { border-left: 3px solid #f59e0b; }
+.acard.ap { border-left: 3px solid #10b981; }
+.acard.rj { border-left: 3px solid #ef4444; }
+.atop { padding: 0.875rem 1.1rem; display: flex; align-items: center; gap: 0.875rem; cursor: pointer; }
+.atop:hover { background: #1e1e2a; }
+.abody { border-top: 1px solid rgba(255,255,255,0.07); padding: 1.1rem; display: none; }
+.abody.open { display: block; }
+.code-prev { background: #0a0a0f; border: 1px solid rgba(255,255,255,0.07); border-radius: 6px; font-family: 'JetBrains Mono',monospace; font-size: 0.72rem; color: #cdd6f4; padding: 0.875rem; overflow: auto; max-height: 250px; white-space: pre; line-height: 1.6; margin-top: 0.625rem; }
+.rules-prev { background: #1e1e2a; padding: 0.75rem; border-radius: 6px; font-size: 0.8rem; color: #b8b8cc; line-height: 1.6; white-space: pre-wrap; margin-top: 0.625rem; }
+.rev-ta { width: 100%; padding: 0.5rem 0.75rem; border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; font-size: 0.8rem; min-height: 60px; resize: vertical; background: #1e1e2a; color: #f0f0f8; margin-top: 0.75rem; }
+.rev-ta:focus { outline: none; border-color: #6366f1; }
+
+</style>
+</head>
+<body>
+<div class="toast" id="_T"></div>
+<div class="app">
+<aside class="sb"><div class="sb-top"><div class="sb-logo">P</div><div class="sb-wm">Pipe<em>base</em></div></div><div class="sb-sec">Architecture</div><button class="sb-btn" onclick="go('architecture.html')">🏛️ Architecture</button><button class="sb-btn" onclick="go('layer-editor.html')">🔧 Layer Editor</button><button class="sb-btn" onclick="go('architecture-docs.html')">📋 Documentation</button><button class="sb-btn on" onclick="go('approvals.html')">✅ Approvals</button><div class="sb-sec">Platform</div><button class="sb-btn" onclick="go('data-viewer.html')">📊 Data Viewer</button><button class="sb-btn" onclick="go('connectors.html')">🔌 Connectors</button><button class="sb-btn" onclick="go('operations.html')">📡 Operations</button><button class="sb-btn" onclick="go('marketplace.html')">🏪 Marketplace</button><button class="sb-btn" onclick="go('team.html')">👥 Team</button><button class="sb-btn" onclick="go('dashboard.html')">📊 Dashboard</button><button class="sb-btn" onclick="go('/')">🏠 Back to site</button><div class="sb-foot"><div class="sb-av" id="_AV">?</div><div class="sb-un" id="_UN">...</div><button style="background:none;border:none;color:#3a3a50;font-size:0.72rem;cursor:pointer" onclick="logout()">↩</button></div></aside>
+<div class="main">
+<div class="topbar"><div style="display:flex;align-items:center;gap:0.75rem"><button class="btn btn-g btn-sm" id="EBN">← Layer Editor</button><span style="font-size:0.875rem;font-weight:700;color:#f0f0f8" id="AL">Approvals</span></div><div style="font-size:0.8rem;color:#6e6e88"><span id="PC" style="font-weight:700;color:#f59e0b">0</span> pending</div></div>
+<div class="scroll"><div class="pad">
+  <div style="margin-bottom:1.5rem">
+    <div style="font-size:1.1rem;font-weight:800;letter-spacing:-0.3px;margin-bottom:0.25rem">✅ Approval Queue</div>
+    <div style="font-size:0.8rem;color:#6e6e88">Review transformation changes before they deploy. Every decision is audited.</div>
+  </div>
+  <div style="display:flex;gap:0.35rem;margin-bottom:1.25rem">
+    <button class="ftab on" onclick="setF('all',this)">All</button>
+    <button class="ftab" onclick="setF('pending',this)">⏳ Pending</button>
+    <button class="ftab" onclick="setF('approved',this)">✓ Approved</button>
+    <button class="ftab" onclick="setF('rejected',this)">✕ Rejected</button>
+  </div>
+  <div id="AL2"></div>
+</div></div>
+</div>
+</div>
+<script>
+
+var _API = 'https://api.pipebase.app';
+async function _boot(cb) {
+  var t = localStorage.getItem('pb_token'); if (!t) return go('/');
+  try {
+    var r = await _hit('/api/auth/me');
+    var n = r.user.name || r.user.email.split('@')[0];
+    document.getElementById('_AV').textContent = n[0].toUpperCase();
+    document.getElementById('_UN').textContent = n;
+    window._user = r.user; if (cb) await cb(r.user);
+  } catch(e) { localStorage.removeItem('pb_token'); go('/'); }
+}
+async function _hit(path, opts) {
+  opts = opts || {};
+  var h = {'Content-Type': 'application/json'};
+  var t = localStorage.getItem('pb_token'); if (t) h['Authorization'] = 'Bearer ' + t;
+  var r = await fetch(_API + path, Object.assign({}, opts, {headers: Object.assign({}, h, opts.headers || {})}));
+  var d = await r.json(); if (!r.ok) throw new Error(d.error || 'Failed'); return d;
+}
+function go(u) { window.location.href = u; }
+function logout() { localStorage.removeItem('pb_token'); go('/'); }
+function _x(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function _ago(ts) { if(!ts)return''; var d=Date.now()-new Date(ts),m=Math.floor(d/60000); if(m<1)return'just now'; if(m<60)return m+'m ago'; if(m<1440)return Math.floor(m/60)+'h ago'; return Math.floor(m/1440)+'d ago'; }
+function _toast(msg, type) { type=type||''; var t=document.getElementById('_T'); t.textContent=msg; t.className='toast'+(type?' '+type:''); t.classList.add('show'); setTimeout(function(){t.classList.remove('show');},3200); }
+function _om(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
+function _cm(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; }
+
+
+var QS=new URLSearchParams(location.search),archId=QS.get('arch'),all=[],filt='all';
+document.addEventListener('DOMContentLoaded',function(){
+  _boot(function(){
+    if(archId){
+      document.getElementById('EBN').onclick=function(){go('layer-editor.html?arch='+archId);};
+      return _hit('/api/medallion/'+archId).then(function(ar){
+        document.getElementById('AL').textContent=ar.architecture.name+' — Approvals';
+      }).then(load);
+    } else load();
+  });
+});
+async function load(){
+  if(!archId){render([]);return;}
+  try{var r=await _hit('/api/medallion/'+archId+'/approvals');all=r.approvals||[];document.getElementById('PC').textContent=all.filter(function(a){return a.status==='pending';}).length;render(all);}
+  catch(e){render([]);}
+}
+function setF(f,el){filt=f;document.querySelectorAll('.ftab').forEach(function(t){t.classList.remove('on');});el.classList.add('on');render(all);}
+function render(items){
+  var f=filt==='all'?items:items.filter(function(a){return a.status===filt;});
+  var list=document.getElementById('AL2');
+  if(!f.length){list.innerHTML='<div style="text-align:center;padding:3.5rem;background:#16161f;border:1px solid rgba(255,255,255,0.07);border-radius:10px;color:#6e6e88"><div style="font-size:2rem;opacity:0.12;margin-bottom:0.625rem">✅</div><div style="font-size:0.875rem;font-weight:600;color:#b8b8cc;margin-bottom:0.25rem">'+(filt==='pending'?'No pending approvals':'No approvals yet')+'</div><div style="font-size:0.78rem">Submit transformations from the Layer Editor</div></div>';return;}
+  var sB={pending:'ba',approved:'bg',rejected:'br'};
+  var sL={pending:'⏳ Pending',approved:'✓ Approved',rejected:'✕ Rejected'};
+  var gL={auto:'⚡ Auto',supervised:'👁 Supervised',governed:'🔐 Governed',enterprise:'🏢 Enterprise'};
+  list.innerHTML=f.map(function(a){return '<div class="acard '+(a.status==='pending'?'pd':a.status==='approved'?'ap':'rj')+'"><div class="atop" onclick="tog('ab-'+a._id+'')"><div style="flex:1;min-width:0"><div style="font-size:0.82rem;font-weight:700;color:#f0f0f8;margin-bottom:0.2rem">'+_x(a.layerName)+' — '+_x(a.changeType||'transformation')+'</div><div style="font-size:0.72rem;color:#6e6e88;display:flex;gap:0.625rem;flex-wrap:wrap;align-items:center"><span class="badge '+(sB[a.status]||'bd')+'">'+(sL[a.status]||a.status)+'</span><span>by '+_x(a.submittedBy||'')+'</span><span>'+_ago(a.createdAt)+'</span><span>'+(gL[a.governanceLevel]||a.governanceLevel)+'</span>'+(a.reviewedBy?'<span>Reviewed by '+_x(a.reviewedBy)+'</span>':'')+'</div></div>'+(a.status==='pending'?'<div style="display:flex;gap:0.35rem;flex-shrink:0"><button class="btn btn-gr btn-sm" onclick="event.stopPropagation();appr(''+a._id+'')">✓ Approve</button><button class="btn btn-r btn-sm" onclick="event.stopPropagation();rej(''+a._id+'')">✕ Reject</button></div>':'<button class="btn btn-g btn-sm" onclick="event.stopPropagation();tog('ab-'+a._id+'')">Details</button>')+'</div><div class="abody" id="ab-'+a._id+'">'+(a.notes?'<div style="padding:0.5rem 0.75rem;background:#1e1e2a;border-radius:6px;font-size:0.78rem;margin-bottom:0.625rem;color:#b8b8cc"><strong>Notes:</strong> '+_x(a.notes)+'</div>':'')+(a.businessRules?'<div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6e6e88;margin-bottom:0.25rem">Business rules</div><div class="rules-prev">'+_x(a.businessRules)+'</div>':'')+(a.code?'<div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6e6e88;margin-top:0.75rem;margin-bottom:0.25rem">Generated code</div><div class="code-prev">'+_x(a.code)+'</div>':'')+(a.status==='pending'?'<textarea class="rev-ta" id="nt-'+a._id+'" placeholder="Review notes (optional)..."></textarea><div style="display:flex;gap:0.5rem;margin-top:0.625rem"><button class="btn btn-gr btn-sm" onclick="appr(''+a._id+'')">✓ Approve &amp; deploy</button><button class="btn btn-r btn-sm" onclick="rej(''+a._id+'')">✕ Reject</button></div>':'')+'</div></div>';}).join('');
+}
+function tog(id){var el=document.getElementById(id);if(el)el.classList.toggle('open');}
+async function appr(id){var n=document.getElementById('nt-'+id);await _hit('/api/medallion/'+archId+'/approvals/'+id,{method:'PATCH',body:JSON.stringify({status:'approved',notes:n?n.value:''})});await load();_toast('Approved ✓','ok');}
+async function rej(id){var n=document.getElementById('nt-'+id);await _hit('/api/medallion/'+archId+'/approvals/'+id,{method:'PATCH',body:JSON.stringify({status:'rejected',notes:n?n.value:''})});await load();_toast('Rejected','warn');}
+
+</script>
+</body>
+</html>

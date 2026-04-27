@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connectors — Pipebase</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg0:#0a0a0f;--bg1:#111118;--bg2:#16161f;--bg3:#1e1e2a;--bg4:#252534;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);--text0:#f0f0f8;--text1:#b8b8cc;--text2:#6e6e88;--text3:#3a3a50;--accent:#6366f1;--accent2:#4f46e5;--accent-glow:rgba(99,102,241,0.2);--accent-text:#a5b4fc;--green:#10b981;--green-dim:rgba(16,185,129,0.15);--amber:#f59e0b;--amber-dim:rgba(245,158,11,0.15);--red:#ef4444;--red-dim:rgba(239,68,68,0.15);--blue:#3b82f6;--blue-dim:rgba(59,130,246,0.15);--purple:#8b5cf6;--purple-dim:rgba(139,92,246,0.15);--nav-w:220px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',-apple-system,system-ui,sans-serif;background:var(--bg0);color:var(--text0);-webkit-font-smoothing:antialiased;}
+button,input,textarea,select{font-family:inherit;}
+.app{display:flex;height:100vh;overflow:hidden;}
+.nav{width:var(--nav-w);flex-shrink:0;background:var(--bg1);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;}
+.main{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden;}
+.scroll{flex:1;overflow-y:auto;}
+.topbar{background:var(--bg1);border-bottom:1px solid var(--border);height:52px;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.nav-brand{padding:1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.625rem;}
+.nav-logo{width:28px;height:28px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.9rem;font-weight:800;color:#fff;flex-shrink:0;}
+.nav-wordmark{font-size:0.95rem;font-weight:800;color:var(--text0);}
+.nav-wordmark span{color:var(--accent-text);}
+.nav-section{font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);padding:0.875rem 0.875rem 0.3rem;}
+.nav-item{display:flex;align-items:center;gap:0.5rem;padding:0.45rem 0.875rem;font-size:0.8rem;font-weight:500;color:var(--text2);border:none;background:none;width:100%;text-align:left;cursor:pointer;border-left:2px solid transparent;transition:all .15s;}
+.nav-item:hover{color:var(--text0);background:var(--bg3);}
+.nav-item.active{color:var(--accent-text);background:var(--accent-glow);border-left-color:var(--accent);}
+.nav-item .ni{font-size:0.85rem;width:18px;text-align:center;flex-shrink:0;}
+.nav-foot{padding:0.75rem;border-top:1px solid var(--border);margin-top:auto;}
+.nav-user{display:flex;align-items:center;gap:0.5rem;}
+.nav-av{width:28px;height:28px;border-radius:50%;background:var(--accent2);display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:700;color:#fff;flex-shrink:0;}
+.nav-name{font-size:0.78rem;font-weight:600;color:var(--text1);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.nav-logout{background:none;border:none;color:var(--text3);font-size:0.72rem;cursor:pointer;padding:4px;}
+.nav-logout:hover{color:var(--text1);}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:0.45rem 0.875rem;border-radius:6px;font-size:0.8rem;font-weight:600;border:none;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.btn-primary{background:var(--accent);color:#fff;}.btn-primary:hover{background:var(--accent2);}
+.btn-ghost{background:transparent;color:var(--text1);border:1px solid var(--border2);}.btn-ghost:hover{background:var(--bg3);color:var(--text0);}
+.btn-green{background:var(--green);color:#fff;}.btn-green:hover{background:#059669;}
+.btn-amber{background:var(--amber);color:#000;}
+.btn-danger{background:var(--red-dim);color:var(--red);border:1px solid rgba(239,68,68,0.2);}
+.btn-sm{padding:0.3rem 0.65rem;font-size:0.75rem;}
+.btn:disabled{opacity:0.35;cursor:not-allowed;}
+.badge{display:inline-flex;align-items:center;font-size:0.68rem;font-weight:700;padding:2px 7px;border-radius:20px;}
+.badge-green{background:var(--green-dim);color:var(--green);}
+.badge-amber{background:var(--amber-dim);color:var(--amber);}
+.badge-red{background:var(--red-dim);color:var(--red);}
+.badge-blue{background:var(--blue-dim);color:var(--blue);}
+.badge-purple{background:var(--purple-dim);color:var(--purple);}
+.badge-gray{background:var(--bg4);color:var(--text2);border:1px solid var(--border2);}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.card-header{padding:0.875rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.card-title{font-size:0.82rem;font-weight:700;}
+.card-body{padding:1.25rem;}
+.form-group{margin-bottom:1rem;}
+.form-label{display:block;font-size:0.72rem;font-weight:700;color:var(--text2);margin-bottom:0.3rem;text-transform:uppercase;letter-spacing:0.4px;}
+.form-input{width:100%;padding:0.55rem 0.75rem;border:1px solid var(--border2);border-radius:6px;font-size:0.85rem;color:var(--text0);background:var(--bg3);transition:border-color .15s;}
+.form-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}
+.form-textarea{min-height:80px;resize:vertical;line-height:1.6;}
+.form-hint{font-size:0.72rem;color:var(--text2);margin-top:0.25rem;}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:flex;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto;opacity:0;pointer-events:none;transition:opacity .2s;}
+.overlay.open{opacity:1;pointer-events:all;}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;width:100%;max-width:560px;box-shadow:0 25px 80px rgba(0,0,0,0.5);transform:scale(0.97);transition:transform .2s;}
+.overlay.open .modal{transform:scale(1);}
+.modal-hdr{padding:1rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.modal-title{font-size:0.9rem;font-weight:700;}
+.modal-close{background:none;border:none;font-size:1rem;color:var(--text2);cursor:pointer;padding:4px;border-radius:4px;}
+.modal-close:hover{background:var(--bg4);color:var(--text0);}
+.modal-body{padding:1.25rem;}
+.modal-footer{padding:0.875rem 1.25rem;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:0.5rem;}
+.tbl{width:100%;border-collapse:collapse;font-size:0.8rem;}
+.tbl th{text-align:left;padding:0.5rem 0.875rem;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text2);background:var(--bg3);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:5;white-space:nowrap;}
+.tbl td{padding:0.5rem 0.875rem;border-bottom:1px solid var(--border);color:var(--text1);}
+.tbl tr:hover td{background:var(--bg3);}
+.mono{font-family:'JetBrains Mono',monospace;font-size:0.75rem;}
+.spin{width:16px;height:16px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;flex-shrink:0;}
+.spin-lg{width:28px;height:28px;border-width:3px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.pl{position:fixed;inset:0;background:var(--bg0);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;z-index:999;}
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(10px);background:var(--bg4);color:var(--text0);border:1px solid var(--border2);padding:0.55rem 1rem;border-radius:6px;font-size:0.8rem;font-weight:500;z-index:300;opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.ok{background:var(--green);border-color:transparent;color:#fff;}
+.toast.err{background:var(--red);border-color:transparent;color:#fff;}
+.toast.warn{background:var(--amber);border-color:transparent;color:#000;}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.75rem;padding:3.5rem;text-align:center;color:var(--text2);}
+.empty-icon{font-size:2.5rem;opacity:0.2;}
+.empty-title{font-size:0.95rem;font-weight:700;color:var(--text1);}
+.empty-desc{font-size:0.8rem;max-width:34ch;}
+.page-pad{padding:1.5rem;}
+.page-title{font-size:1.1rem;font-weight:800;letter-spacing:-0.3px;margin-bottom:0.25rem;}
+.page-sub{font-size:0.8rem;color:var(--text2);}
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.875rem;}
+.sec-title{font-size:0.8rem;font-weight:700;}
+@media(max-width:768px){.nav{display:none;}.main{width:100%;}}
+</style>
+<style>
+.src-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:0.75rem;margin-bottom:2rem;}
+.src-type{background:var(--bg2);border:1.5px solid var(--border);border-radius:10px;padding:1rem;text-align:center;cursor:pointer;transition:all .15s;}
+.src-type:hover{border-color:var(--accent);background:var(--bg3);}
+.src-type.selected{border-color:var(--accent);background:var(--accent-glow);}
+.src-icon{font-size:1.75rem;margin-bottom:0.5rem;}
+.src-name{font-size:0.78rem;font-weight:700;}
+.conn-list{display:flex;flex-direction:column;gap:0.75rem;}
+.conn-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.conn-card-top{padding:0.875rem 1.25rem;display:flex;align-items:center;gap:0.875rem;}
+.conn-icon{font-size:1.25rem;flex-shrink:0;}
+.conn-name{font-size:0.875rem;font-weight:700;}
+.conn-meta{font-size:0.72rem;color:var(--text2);display:flex;gap:0.625rem;flex-wrap:wrap;margin-top:0.2rem;}
+.conn-body{border-top:1px solid var(--border);display:none;}
+.conn-body.open{display:block;}
+.schema-wrap{display:grid;grid-template-columns:200px 1fr;max-height:400px;}
+.schema-tables{border-right:1px solid var(--border);overflow-y:auto;}
+.schema-table-item{padding:0.5rem 0.875rem;font-size:0.78rem;font-family:'JetBrains Mono',monospace;cursor:pointer;border-left:2px solid transparent;color:var(--text2);transition:all .12s;}
+.schema-table-item:hover{background:var(--bg3);color:var(--text0);}
+.schema-table-item.active{color:var(--accent-text);background:var(--accent-glow);border-left-color:var(--accent);}
+.schema-detail{padding:1.25rem;overflow-y:auto;}
+.fields-tbl{width:100%;border-collapse:collapse;font-size:0.75rem;}
+.fields-tbl th{text-align:left;padding:0.4rem 0.625rem;font-size:0.65rem;font-weight:700;text-transform:uppercase;color:var(--text2);background:var(--bg3);border-bottom:1px solid var(--border);}
+.fields-tbl td{padding:0.42rem 0.625rem;border-bottom:1px solid var(--border);color:var(--text1);}
+.null-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:3px;}
+.null-fill{height:100%;background:var(--amber);border-radius:2px;}
+.csv-drop{border:2px dashed var(--border2);border-radius:10px;padding:2.5rem;text-align:center;cursor:pointer;transition:all .2s;}
+.csv-drop:hover,.csv-drop.drag{border-color:var(--accent);background:var(--accent-glow);}
+.prof-col{background:var(--bg3);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:0.625rem;}
+.prof-col-hdr{padding:0.625rem 0.875rem;background:var(--bg4);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;}
+.prof-col-name{font-family:'JetBrains Mono',monospace;font-size:0.8rem;font-weight:600;}
+.prof-col-body{padding:0.875rem;display:grid;grid-template-columns:1fr 1fr;gap:0.875rem;font-size:0.75rem;}
+.tv-row{display:flex;align-items:center;gap:0.5rem;padding:0.15rem 0;}
+.tv-bar{flex:1;height:3px;background:var(--border);border-radius:2px;overflow:hidden;}
+.tv-fill{height:100%;background:var(--accent);border-radius:2px;}
+.tv-val{color:var(--text1);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.72rem;}
+.tv-cnt{color:var(--text2);font-size:0.68rem;flex-shrink:0;}
+</style>
+</head>
+<body>
+<div class="toast" id="_t"></div>
+<div class="pl" id="_pl"><div class="spin spin-lg"></div><div style="font-size:0.875rem;color:var(--text2)">Loading...</div></div>
+<div class="app" id="_app" style="display:none">
+<aside class="nav">
+  <div class="nav-brand"><div class="nav-logo">P</div><div class="nav-wordmark">Pipe<span>base</span></div></div>
+  <div class="nav-section">Architecture</div><button class="nav-item" onclick="go('architecture.html')"><span class="ni">🏛️</span>Architecture</button>
+<button class="nav-item" onclick="go('layer-editor.html')"><span class="ni">🔧</span>Layer Editor</button>
+<button class="nav-item" onclick="go('architecture-docs.html')"><span class="ni">📋</span>Docs</button>
+<button class="nav-item" onclick="go('approvals.html')"><span class="ni">✅</span>Approvals</button>
+  <div class="nav-section">Platform</div><button class="nav-item" onclick="go('data-viewer.html')"><span class="ni">📊</span>Data Viewer</button>
+<button class="nav-item active" onclick="go('connectors.html')"><span class="ni">🔌</span>Connectors</button>
+<button class="nav-item" onclick="go('operations.html')"><span class="ni">📡</span>Operations</button>
+<button class="nav-item" onclick="go('marketplace.html')"><span class="ni">🏪</span>Marketplace</button>
+<button class="nav-item" onclick="go('team.html')"><span class="ni">👥</span>Team</button>
+<button class="nav-item" onclick="go('dashboard.html')"><span class="ni">📊</span>Dashboard</button>
+  <div class="nav-foot"><div class="nav-user">
+    <div class="nav-av" id="navAv">?</div>
+    <div class="nav-name" id="navName">...</div>
+    <button class="nav-logout" onclick="logout()">↩</button>
+  </div></div>
+</aside>
+<div class="main">
+
+  <div class="topbar">
+    <div style="font-size:0.82rem;font-weight:700;color:var(--text0)">Connectors</div>
+    <button class="btn btn-primary btn-sm" onclick="openAdd()">+ Add connector</button>
+  </div>
+  <div class="scroll">
+    <div class="page-pad">
+      <div style="margin-bottom:1.5rem">
+        <div class="page-title">🔌 Data Source Connectors</div>
+        <div class="page-sub">Connect to your data. Pipebase discovers schemas, profiles every column, and feeds your architecture layers.</div>
+      </div>
+
+      <!-- Connector type grid -->
+      <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text2);margin-bottom:0.75rem">Add a connector</div>
+      <div class="src-grid" id="typeGrid"></div>
+
+      <!-- My connectors -->
+      <div class="sec-hdr"><div class="sec-title">My connectors</div><span style="font-size:0.72rem;color:var(--text2)" id="connCount"></span></div>
+      <div class="conn-list" id="connList"><div class="empty"><div class="empty-icon">🔌</div><div class="empty-title">No connectors yet</div><div class="empty-desc">Add one above to start exploring your data</div></div></div>
+
+      <!-- CSV upload section -->
+      <div class="sec-hdr" style="margin-top:2rem"><div class="sec-title">📄 CSV / File upload</div></div>
+      <div class="csv-drop" id="csvDrop" onclick="document.getElementById('csvFile').click()" ondrop="onDrop(event)" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)">
+        <input type="file" id="csvFile" accept=".csv" style="display:none" onchange="onCSVPick(event)">
+        <div style="font-size:2rem;margin-bottom:0.625rem">📂</div>
+        <div style="font-size:0.9rem;font-weight:700;margin-bottom:0.25rem">Drop a CSV file here or click to browse</div>
+        <div style="font-size:0.8rem;color:var(--text2)">Pipebase profiles every column automatically</div>
+        <div style="margin-top:0.5rem;font-size:0.78rem;color:var(--green)" id="csvName"></div>
+      </div>
+      <div style="margin-top:0.75rem;display:flex;gap:0.5rem">
+        <button class="btn btn-primary btn-sm" id="profBtn" onclick="profileCSV()" disabled>⚡ Profile this file</button>
+      </div>
+      <div id="profOut" style="margin-top:1.5rem"></div>
+    </div>
+  </div>
+
+</div>
+</div>
+<script>
+const API='https://api.pipebase.app';
+async function initUser(){
+  const t=localStorage.getItem('pb_token');if(!t)return go('/');
+  try{const r=await api('/api/auth/me');window._user=r.user;
+    const n=r.user.name||r.user.email.split('@')[0];
+    document.getElementById('navAv').textContent=n[0].toUpperCase();
+    document.getElementById('navName').textContent=n;
+    return r.user;
+  }catch{localStorage.removeItem('pb_token');go('/');}
+}
+async function api(path,opts={}){
+  const h={'Content-Type':'application/json'};
+  const t=localStorage.getItem('pb_token');if(t)h['Authorization']=`Bearer ${t}`;
+  const r=await fetch(API+path,{...opts,headers:{...h,...opts.headers}});
+  const d=await r.json();if(!r.ok)throw new Error(d.error||'Request failed');return d;
+}
+function go(url){window.location.href=url;}
+function logout(){localStorage.removeItem('pb_token');go('/');}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function ta(ts){if(!ts)return'';const d=Date.now()-new Date(ts);const m=Math.floor(d/60000);
+  if(m<1)return'just now';if(m<60)return m+'m ago';if(m<1440)return Math.floor(m/60)+'h ago';return Math.floor(m/1440)+'d ago';}
+function toast(msg,type=''){const t=document.getElementById('_t');t.textContent=msg;
+  t.className='toast'+(type?' '+type:'');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200);}
+function openM(id){document.getElementById(id).classList.add('open');document.body.style.overflow='hidden';}
+function closeM(id){document.getElementById(id).classList.remove('open');document.body.style.overflow='';}
+</script>
+<script>
+const TYPES = {
+  postgres:{name:'PostgreSQL',emoji:'🐘',fields:[{k:'host',l:'Host'},{k:'port',l:'Port',d:'5432'},{k:'database',l:'Database'},{k:'username',l:'Username'},{k:'password',l:'Password',t:'password'},{k:'ssl',l:'SSL',t:'boolean',d:true}]},
+  mysql:{name:'MySQL',emoji:'🐬',fields:[{k:'host',l:'Host'},{k:'port',l:'Port',d:'3306'},{k:'database',l:'Database'},{k:'username',l:'Username'},{k:'password',l:'Password',t:'password'}]},
+  shopify:{name:'Shopify',emoji:'🛍️',fields:[{k:'shop_domain',l:'Shop domain',p:'mystore.myshopify.com'},{k:'access_token',l:'Access token',t:'password',p:'shpat_...'},{k:'api_version',l:'API version',d:'2024-01'}]},
+  stripe:{name:'Stripe',emoji:'💳',fields:[{k:'secret_key',l:'Secret key',t:'password',p:'sk_live_...'}]},
+  salesforce:{name:'Salesforce',emoji:'☁️',fields:[{k:'instance_url',l:'Instance URL',p:'https://yourorg.salesforce.com'},{k:'access_token',l:'Access token',t:'password'},{k:'api_version',l:'API version',d:'v58.0'}]},
+  hubspot:{name:'HubSpot',emoji:'🟠',fields:[{k:'access_token',l:'Access token',t:'password',p:'pat-na1-...'}]},
+  bigquery:{name:'BigQuery',emoji:'🏛️',fields:[{k:'project_id',l:'Project ID'},{k:'dataset',l:'Dataset'},{k:'credentials_json',l:'Service account JSON',t:'textarea'}]},
+  rest_api:{name:'REST API',emoji:'🔌',fields:[{k:'base_url',l:'Base URL'},{k:'auth_type',l:'Auth type',t:'select',opts:['none','api_key','bearer_token','basic_auth']},{k:'auth_value',l:'Auth value',t:'password'},{k:'openapi_url',l:'OpenAPI spec URL (optional)'}]},
+};
+let selectedType=null, myConns=[], csvContent=null, csvFilename=null, lastProfile=null;
+
+document.addEventListener('DOMContentLoaded', async()=>{
+  await initUser();
+  renderTypeGrid();
+  await loadConns();
+  document.getElementById('_pl').style.display='none';
+  document.getElementById('_app').style.display='flex';
+});
+
+function renderTypeGrid(){
+  document.getElementById('typeGrid').innerHTML = Object.entries(TYPES).map(([id,t])=>`
+    <div class="src-type ${selectedType===id?'selected':''}" onclick="selectType('${id}')">
+      <div class="src-icon">${t.emoji}</div>
+      <div class="src-name">${t.name}</div>
+    </div>`).join('');
+}
+
+function selectType(id){ selectedType=id; renderTypeGrid(); openAdd(); }
+
+async function loadConns(){
+  const r = await api('/api/connectors');
+  myConns = r.connectors||[];
+  document.getElementById('connCount').textContent = myConns.length + ' connector' + (myConns.length!==1?'s':'');
+  renderConns();
+}
+
+function renderConns(){
+  const list = document.getElementById('connList');
+  if(!myConns.length){
+    list.innerHTML='<div class="empty"><div class="empty-icon">🔌</div><div class="empty-title">No connectors yet</div><div class="empty-desc">Add one above to start exploring your data</div></div>';
+    return;
+  }
+  const statusColor={connected:'var(--green)',error:'var(--red)',untested:'var(--text2)'};
+  list.innerHTML=myConns.map(c=>{
+    const T=TYPES[c.type]||{emoji:'🔌',name:c.type};
+    return `<div class="conn-card">
+      <div class="conn-card-top">
+        <div class="conn-icon">${T.emoji}</div>
+        <div style="flex:1;min-width:0">
+          <div class="conn-name">${esc(c.name)}</div>
+          <div class="conn-meta">
+            <span>${T.name}</span>
+            <span style="color:${statusColor[c.status]||'var(--text2)'};font-weight:600">${c.status==='connected'?'✓ Connected':c.status==='error'?'✗ Error':'Not tested'}</span>
+            ${c.lastTested?`<span>${ta(c.lastTested)}</span>`:''}
+          </div>
+        </div>
+        <div style="display:flex;gap:0.35rem">
+          <button class="btn btn-ghost btn-sm" onclick="testConn('${c._id}')">Test</button>
+          <button class="btn btn-ghost btn-sm" onclick="discoverConn('${c._id}')">Discover</button>
+          ${c.cachedSchema?`<button class="btn btn-ghost btn-sm" onclick="toggleSchema('${c._id}')">Schema</button>`:''}
+          <button class="btn btn-danger btn-sm" onclick="deleteConn('${c._id}')">✕</button>
+        </div>
+      </div>
+      ${c.cachedSchema?`<div class="conn-body" id="schema-${c._id}">${renderSchema(c)}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function toggleSchema(id){ const el=document.getElementById('schema-'+id); if(el)el.classList.toggle('open'); }
+
+function renderSchema(conn){
+  const tables=conn.cachedSchema?.tables||[];
+  if(!tables.length)return'<div style="padding:1.25rem;color:var(--text2);font-size:0.82rem">No tables found</div>';
+  const first=tables[0];
+  return `<div class="schema-wrap">
+    <div class="schema-tables">${tables.map((t,i)=>`
+      <div class="schema-table-item ${i===0?'active':''}" id="st-${conn._id}-${i}" onclick="showTable('${conn._id}',${i})">
+        ${esc(t.name)} <span style="float:right;font-size:0.65rem;color:var(--text3)">${t.rowCount!=null?t.rowCount.toLocaleString():''}</span>
+      </div>`).join('')}
+    </div>
+    <div class="schema-detail" id="sd-${conn._id}">${renderTableDetail(conn,first)}</div>
+  </div>`;
+}
+
+function showTable(cid,idx){
+  const conn=myConns.find(c=>c._id===cid);if(!conn?.cachedSchema)return;
+  document.querySelectorAll(`[id^="st-${cid}-"]`).forEach(e=>e.classList.remove('active'));
+  document.getElementById(`st-${cid}-${idx}`)?.classList.add('active');
+  const det=document.getElementById('sd-'+cid);
+  if(det)det.innerHTML=renderTableDetail(conn,conn.cachedSchema.tables[idx]);
+}
+
+function renderTableDetail(conn,t){
+  if(!t)return'';
+  const cols=(t.columns||[]);
+  return `<div>
+    <div style="font-size:0.8rem;font-weight:700;margin-bottom:0.5rem;font-family:monospace">${esc(t.name)}</div>
+    <div style="font-size:0.72rem;color:var(--text2);margin-bottom:0.875rem;display:flex;gap:1rem">
+      ${t.rowCount!=null?`<span>📊 ${t.rowCount.toLocaleString()} rows</span>`:''}
+      <span>📋 ${cols.length} columns</span>
+    </div>
+    <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap">
+      <button class="btn btn-ghost btn-sm" onclick="sampleTable('${conn._id}','${t.name}')">📋 Sample</button>
+      <button class="btn btn-primary btn-sm" onclick="profileTable('${conn._id}','${t.name}')">⚡ Profile</button>
+      <button class="btn btn-ghost btn-sm" onclick="pushToArch('${conn._id}','${t.name}')">→ Use in architecture</button>
+    </div>
+    <table class="fields-tbl">
+      <thead><tr><th>Column</th><th>Type</th><th>Nullable</th></tr></thead>
+      <tbody>${cols.map(c=>`<tr>
+        <td class="mono">${esc(c.name)}${c.isPrimaryKey?'<span style="font-size:0.6rem;margin-left:4px;padding:1px 4px;border-radius:3px;background:var(--amber-dim);color:var(--amber)">PK</span>':''}</td>
+        <td class="mono" style="color:var(--purple)">${esc(c.type||'')}</td>
+        <td style="color:${c.nullable===false?'var(--red)':'var(--text2)'}">${c.nullable===false?'NOT NULL':'nullable'}</td>
+      </tr>`).join('')}</tbody>
+    </table>
+    <div id="tdata-${conn._id}-${t.name.replace(/\W/g,'_')}"></div>
+  </div>`;
+}
+
+async function sampleTable(cid,tbl){
+  const id=`tdata-${cid}-${tbl.replace(/\W/g,'_')}`;
+  const el=document.getElementById(id);if(el)el.innerHTML='<div style="padding:0.75rem;color:var(--text2);font-size:0.78rem"><div class="spin" style="display:inline-block"></div> Loading...</div>';
+  try{
+    const r=await api(`/api/connectors/${cid}/sample`,{method:'POST',body:JSON.stringify({table:tbl,limit:5})});
+    const rows=r.sample?.rows||[];const cols=r.sample?.columns||Object.keys(rows[0]||{});
+    if(el)el.innerHTML=`<div style="margin-top:1rem;overflow-x:auto"><div style="font-size:0.7rem;color:var(--text2);margin-bottom:0.35rem;font-weight:700;text-transform:uppercase">Sample data (${rows.length} rows)</div>
+      <table class="tbl"><thead><tr>${cols.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead>
+      <tbody>${rows.map(r=>`<tr>${cols.map(c=>`<td class="mono" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(String(r[c]??''))}">${esc(String(r[c]??''))}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  }catch(e){if(el)el.innerHTML=`<div style="padding:0.75rem;color:var(--red);font-size:0.78rem">Failed: ${e.message}</div>`;}
+}
+
+async function profileTable(cid,tbl){
+  const id=`tdata-${cid}-${tbl.replace(/\W/g,'_')}`;
+  const el=document.getElementById(id);if(el)el.innerHTML='<div style="padding:0.75rem;color:var(--text2);font-size:0.78rem"><div class="spin" style="display:inline-block"></div> Profiling...</div>';
+  try{
+    const r=await api(`/api/connectors/${cid}/profile`,{method:'POST',body:JSON.stringify({table:tbl})});
+    if(el)el.innerHTML=renderProfileOut(r.profile);
+  }catch(e){if(el)el.innerHTML=`<div style="padding:0.75rem;color:var(--red);font-size:0.78rem">Failed: ${e.message}</div>`;}
+}
+
+function renderProfileOut(profile){
+  const cols=profile?.columns||[];
+  return `<div style="margin-top:1rem">
+    <div style="font-size:0.7rem;color:var(--text2);margin-bottom:0.75rem;font-weight:700;text-transform:uppercase">Profile — ${(profile?.totalRows||0).toLocaleString()} rows</div>
+    ${cols.map(col=>{
+      const nullPct=parseFloat(col.nullRate||0);
+      const tvs=col.topValues||[];const maxCnt=tvs[0]?.count||1;
+      return `<div class="prof-col">
+        <div class="prof-col-hdr">
+          <span class="prof-col-name">${esc(col.name)}</span>
+          <div style="display:flex;gap:0.5rem;align-items:center">
+            <span class="mono" style="font-size:0.7rem;color:var(--purple)">${esc(col.type||'')}</span>
+            ${nullPct>0?`<span class="badge badge-amber">${col.nullRate}% null</span>`:`<span class="badge badge-green">0% null</span>`}
+          </div>
+        </div>
+        <div class="prof-col-body">
+          <div>
+            <div style="color:var(--text2);margin-bottom:0.2rem">Unique: ${(col.uniqueCount||0).toLocaleString()} (${col.uniqueRate}%)</div>
+            ${col.min!=null?`<div style="color:var(--text2)">Min/Max: ${col.min} / ${col.max}</div>`:''}
+            ${col.avg!=null?`<div style="color:var(--text2)">Avg: ${col.avg}</div>`:''}
+            <div class="null-bar" style="margin-top:0.4rem"><div class="null-fill" style="width:${Math.min(nullPct,100)}%"></div></div>
+          </div>
+          <div>
+            ${tvs.length?`<div style="color:var(--text2);margin-bottom:0.35rem;font-size:0.68rem">Top values</div>
+            ${tvs.map(v=>`<div class="tv-row">
+              <div class="tv-val">${esc(String(v.value))}</div>
+              <div class="tv-bar"><div class="tv-fill" style="width:${Math.round(v.count/maxCnt*100)}%"></div></div>
+              <div class="tv-cnt">${v.count}</div>
+            </div>`).join('')}`:''}
+          </div>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+async function pushToArch(cid,tbl){
+  // Store connector+table reference for architecture builder to pick up
+  localStorage.setItem('pb_conn_ref',JSON.stringify({connectorId:cid,table:tbl,ts:Date.now()}));
+  toast('Ready to use in architecture. Go to Architecture Builder.','ok');
+}
+
+async function testConn(id){
+  const r=await api(`/api/connectors/${id}/test`,{method:'POST'});
+  await loadConns();
+  toast(r.success?'✓ '+r.message:'✗ '+(r.error||'Failed'),r.success?'ok':'err');
+}
+
+async function discoverConn(id){
+  toast('Discovering schema...');
+  try{await api(`/api/connectors/${id}/discover`,{method:'POST'});await loadConns();toast('Schema discovered!','ok');}
+  catch(e){toast(e.message,'err');}
+}
+
+async function deleteConn(id){
+  if(!confirm('Delete this connector?'))return;
+  await api(`/api/connectors/${id}`,{method:'DELETE'});
+  await loadConns();toast('Deleted','ok');
+}
+
+// ADD CONNECTOR MODAL
+function openAdd(){
+  if(!selectedType){toast('Select a connector type first','warn');return;}
+  const T=TYPES[selectedType];
+  document.getElementById('addModalTitle').textContent='Add '+T.name+' connector';
+  document.getElementById('newConnName').value='';
+  const fields=document.getElementById('credFields');
+  fields.innerHTML=T.fields.map(f=>{
+    if(f.t==='boolean')return`<div class="form-group"><label class="form-label" style="display:flex;align-items:center;gap:0.5rem;cursor:pointer"><input type="checkbox" id="cf_${f.k}" ${f.d?'checked':''}> ${f.l}</label></div>`;
+    if(f.t==='textarea')return`<div class="form-group"><label class="form-label">${f.l}</label><textarea class="form-input form-textarea" id="cf_${f.k}" placeholder="${f.p||''}"></textarea></div>`;
+    if(f.t==='select')return`<div class="form-group"><label class="form-label">${f.l}</label><select class="form-input" id="cf_${f.k}" style="appearance:auto;cursor:pointer">${(f.opts||[]).map(o=>`<option>${o}</option>`).join('')}</select></div>`;
+    return`<div class="form-group"><label class="form-label">${f.l}</label><input type="${f.t==='password'?'password':'text'}" class="form-input" id="cf_${f.k}" placeholder="${f.p||''}" value="${f.d||''}"></div>`;
+  }).join('');
+  openM('addModal');
+}
+
+function getCreds(){
+  const T=TYPES[selectedType];const creds={};
+  (T?.fields||[]).forEach(f=>{
+    const el=document.getElementById('cf_'+f.k);if(!el)return;
+    creds[f.k]=f.t==='boolean'?el.checked:el.value;
+  });
+  return creds;
+}
+
+async function saveConn(){
+  const name=document.getElementById('newConnName').value.trim();
+  if(!name){toast('Name required','warn');return;}
+  await api('/api/connectors',{method:'POST',body:JSON.stringify({type:selectedType,name,credentials:getCreds()})});
+  closeM('addModal');await loadConns();toast('Connector saved!','ok');
+}
+
+async function testNew(){
+  const btn=document.getElementById('testNewBtn');btn.disabled=true;btn.innerHTML='<div class="spin" style="display:inline-block"></div>';
+  try{
+    const saved=await api('/api/connectors',{method:'POST',body:JSON.stringify({type:selectedType,name:'_test_'+Date.now(),credentials:getCreds()})});
+    const r=await api(`/api/connectors/${saved.connector._id}/test`,{method:'POST'});
+    await api(`/api/connectors/${saved.connector._id}`,{method:'DELETE'});
+    toast(r.success?'✓ '+r.message:'✗ '+(r.error||'Failed'),r.success?'ok':'err');
+    btn.textContent=r.success?'✓ Connected':'✗ Failed';
+  }catch(e){toast(e.message,'err');btn.textContent='✗ Error';}
+  btn.disabled=false;
+  setTimeout(()=>{btn.textContent='Test connection';},3000);
+}
+
+// CSV
+function onDragOver(e){e.preventDefault();document.getElementById('csvDrop').classList.add('drag');}
+function onDragLeave(){document.getElementById('csvDrop').classList.remove('drag');}
+function onDrop(e){e.preventDefault();document.getElementById('csvDrop').classList.remove('drag');readCSV(e.dataTransfer.files[0]);}
+function onCSVPick(e){readCSV(e.target.files[0]);}
+function readCSV(file){
+  if(!file)return;csvFilename=file.name;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    csvContent=e.target.result;
+    const rows=csvContent.split('\n').length-1;
+    document.getElementById('csvName').textContent='✓ '+file.name+' ('+rows.toLocaleString()+' rows)';
+    document.getElementById('profBtn').disabled=false;
+  };
+  reader.readAsText(file);
+}
+async function profileCSV(){
+  if(!csvContent)return;
+  const btn=document.getElementById('profBtn');btn.disabled=true;btn.innerHTML='<div class="spin" style="display:inline-block"></div> Profiling...';
+  try{
+    // Upload to server
+    try{await api('/api/connectors/csv/upload',{method:'POST',body:JSON.stringify({csvData:csvContent,filename:csvFilename})});}catch(e){}
+    const r=await api('/api/connectors/csv/profile',{method:'POST',body:JSON.stringify({csvData:csvContent,filename:csvFilename})});
+    lastProfile=r.profile;
+    document.getElementById('profOut').innerHTML=`
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem">
+        <div style="font-weight:700">📊 ${esc(csvFilename||'')} — ${(r.profile?.totalRows||0).toLocaleString()} rows</div>
+        <div style="display:flex;gap:0.5rem">
+          <button class="btn btn-primary btn-sm" onclick="pushCSVToArch()">→ Use in architecture</button>
+          <button class="btn btn-ghost btn-sm" onclick="pushCSVToViewer()">📊 Open in viewer</button>
+        </div>
+      </div>
+      ${renderProfileOut(r.profile)}`;
+    toast('Profiled!','ok');
+  }catch(e){toast(e.message,'err');}
+  btn.disabled=false;btn.textContent='⚡ Profile this file';
+}
+
+function pushCSVToArch(){
+  if(!lastProfile||!window._user)return;
+  localStorage.setItem('pb_csv_ref',JSON.stringify({filename:csvFilename,totalRows:lastProfile.totalRows,columns:lastProfile.columns,ts:Date.now()}));
+  toast('Ready! Go to Architecture Builder to use this data.','ok');
+}
+
+function pushCSVToViewer(){
+  localStorage.setItem('pb_csv_prefill',csvFilename);
+  go('data-viewer.html');
+}
+</script>
+<div class="overlay" id="addModal" onclick="if(event.target===this)closeM('addModal')">
+<div class="modal" onclick="event.stopPropagation()">
+  <div class="modal-hdr"><div class="modal-title" id="addModalTitle">Add connector</div><button class="modal-close" onclick="closeM('addModal')">✕</button></div>
+  <div class="modal-body">
+    <div class="form-group"><label class="form-label">Connection name *</label><input class="form-input" id="newConnName" placeholder="e.g. Production Postgres"></div>
+    <div id="credFields"></div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-ghost" onclick="closeM('addModal')">Cancel</button>
+    <button class="btn btn-ghost" id="testNewBtn" onclick="testNew()">Test connection</button>
+    <button class="btn btn-primary" onclick="saveConn()">Save connector</button>
+  </div>
+</div>
+</div>
+</body>
+</html>

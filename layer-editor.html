@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Layer Editor — Pipebase</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-font-smoothing: antialiased; }
+body { font-family: 'Inter', system-ui, sans-serif; background: #0a0a0f; color: #f0f0f8; min-height: 100vh; }
+button, input, textarea, select { font-family: inherit; }
+.app { display: flex; min-height: 100vh; }
+.sb { width: 220px; flex-shrink: 0; background: #111118; border-right: 1px solid rgba(255,255,255,0.07); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; overflow-y: auto; z-index: 10; }
+.sb-top { padding: 1rem; border-bottom: 1px solid rgba(255,255,255,0.07); display: flex; align-items: center; gap: 0.6rem; }
+.sb-logo { width: 28px; height: 28px; background: #6366f1; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-weight: 900; color: #fff; font-size: 0.9rem; flex-shrink: 0; }
+.sb-wm { font-size: 0.95rem; font-weight: 800; color: #f0f0f8; }
+.sb-wm em { font-style: normal; color: #a5b4fc; }
+.sb-sec { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #3a3a50; padding: 0.875rem 0.875rem 0.3rem; }
+.sb-btn { display: flex; align-items: center; gap: 0.5rem; padding: 0.45rem 0.875rem; font-size: 0.8rem; font-weight: 500; color: #6e6e88; border: none; background: none; width: 100%; text-align: left; cursor: pointer; border-left: 2px solid transparent; transition: all .15s; }
+.sb-btn:hover { color: #f0f0f8; background: #1e1e2a; }
+.sb-btn.on { color: #a5b4fc; background: rgba(99,102,241,0.15); border-left-color: #6366f1; }
+.sb-foot { padding: 0.75rem; border-top: 1px solid rgba(255,255,255,0.07); margin-top: auto; display: flex; align-items: center; gap: 0.5rem; }
+.sb-av { width: 26px; height: 26px; border-radius: 50%; background: #4f46e5; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; color: #fff; flex-shrink: 0; }
+.sb-un { font-size: 0.78rem; font-weight: 600; color: #b8b8cc; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.main { flex: 1; margin-left: 220px; display: flex; flex-direction: column; }
+.topbar { background: #111118; border-bottom: 1px solid rgba(255,255,255,0.07); height: 52px; padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 5; }
+.scroll { flex: 1; overflow-y: auto; }
+.pad { padding: 1.5rem; max-width: 1000px; }
+.btn { display: inline-flex; align-items: center; gap: 5px; padding: 0.42rem 0.875rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; border: none; cursor: pointer; transition: all .15s; white-space: nowrap; }
+.btn-p { background: #6366f1; color: #fff; } .btn-p:hover { background: #4f46e5; }
+.btn-g { background: transparent; color: #b8b8cc; border: 1px solid rgba(255,255,255,0.15); } .btn-g:hover { background: #1e1e2a; color: #f0f0f8; }
+.btn-gr { background: #10b981; color: #fff; } .btn-gr:hover { background: #059669; }
+.btn-am { background: #f59e0b; color: #000; }
+.btn-r { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.25); }
+.btn-sm { padding: 0.28rem 0.65rem; font-size: 0.74rem; }
+.btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.fg { margin-bottom: 0.875rem; }
+.fl { display: block; font-size: 0.7rem; font-weight: 700; color: #6e6e88; margin-bottom: 0.28rem; text-transform: uppercase; letter-spacing: 0.4px; }
+.fi { width: 100%; padding: 0.52rem 0.75rem; border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; font-size: 0.85rem; color: #f0f0f8; background: #1e1e2a; transition: border-color .15s; }
+.fi:focus { outline: none; border-color: #6366f1; }
+.fta { min-height: 80px; resize: vertical; line-height: 1.6; }
+.ov { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 100; display: flex; align-items: flex-start; justify-content: center; padding: 2rem 1rem; overflow-y: auto; opacity: 0; pointer-events: none; transition: opacity .2s; }
+.ov.open { opacity: 1; pointer-events: all; }
+.mbox { background: #16161f; border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; width: 100%; max-width: 580px; box-shadow: 0 25px 80px rgba(0,0,0,0.6); transform: scale(0.97); transition: transform .2s; }
+.ov.open .mbox { transform: scale(1); }
+.mhdr { padding: 1rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.07); display: flex; align-items: center; justify-content: space-between; }
+.mtitle { font-size: 0.9rem; font-weight: 700; color: #f0f0f8; }
+.mx { background: none; border: none; color: #6e6e88; cursor: pointer; font-size: 1rem; padding: 4px; border-radius: 4px; }
+.mx:hover { background: #252534; color: #f0f0f8; }
+.mbody { padding: 1.25rem; max-height: 72vh; overflow-y: auto; }
+.mfoot { padding: 0.875rem 1.25rem; border-top: 1px solid rgba(255,255,255,0.07); display: flex; justify-content: flex-end; gap: 0.5rem; }
+.badge { display: inline-flex; align-items: center; font-size: 0.67rem; font-weight: 700; padding: 2px 7px; border-radius: 20px; }
+.bg { background: rgba(16,185,129,0.15); color: #10b981; }
+.ba { background: rgba(245,158,11,0.15); color: #f59e0b; }
+.br { background: rgba(239,68,68,0.15); color: #ef4444; }
+.bd { background: #252534; color: #6e6e88; border: 1px solid rgba(255,255,255,0.1); }
+.spin { width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.15); border-top-color: #6366f1; border-radius: 50%; animation: sp .7s linear infinite; display: inline-block; vertical-align: middle; }
+.spin-lg { width: 28px; height: 28px; border-width: 3px; }
+@keyframes sp { to { transform: rotate(360deg); } }
+.toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(10px); background: #252534; color: #f0f0f8; border: 1px solid rgba(255,255,255,0.12); padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.8rem; font-weight: 500; z-index: 300; opacity: 0; transition: all .25s; pointer-events: none; white-space: nowrap; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.ok { background: #10b981; border-color: transparent; }
+.toast.err { background: #ef4444; border-color: transparent; }
+.toast.warn { background: #f59e0b; border-color: transparent; color: #000; }
+@media (max-width: 768px) { .sb { display: none; } .main { margin-left: 0; } }
+
+body { height: 100vh; overflow: hidden; }
+.app { height: 100vh; overflow: hidden; }
+.main { overflow: hidden; }
+.full-h { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+.flow-bar { background: #111118; border-bottom: 1px solid rgba(255,255,255,0.07); padding: 0.5rem 1.25rem; display: flex; align-items: center; overflow-x: auto; flex-shrink: 0; gap: 0; }
+.fp { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; cursor: pointer; }
+.pill { display: flex; align-items: center; gap: 0.3rem; padding: 0.32rem 0.7rem; border-radius: 14px; font-size: 0.73rem; font-weight: 700; border: 1.5px solid; white-space: nowrap; transition: all .15s; }
+.farr { color: #3a3a50; font-size: 0.8rem; margin: 0 0.2rem; padding-bottom: 0.875rem; flex-shrink: 0; }
+.fsub { font-size: 0.58rem; color: #3a3a50; margin-top: 0.15rem; }
+.fadd { cursor: pointer; opacity: 0.4; transition: opacity .15s; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; }
+.fadd:hover { opacity: 1; }
+.fadd-btn { width: 24px; height: 24px; border-radius: 50%; border: 1.5px dashed rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 0.875rem; color: #6e6e88; }
+.appr-bar { padding: 0.55rem 1.25rem; display: flex; align-items: center; gap: 0.875rem; border-bottom: 1px solid rgba(255,255,255,0.07); flex-shrink: 0; }
+.appr-bar.dr { background: #111118; }
+.appr-bar.pd { background: rgba(245,158,11,0.08); }
+.appr-bar.ap { background: rgba(16,185,129,0.08); }
+.panels { flex: 1; display: grid; grid-template-columns: 1fr 1fr 1fr; overflow: hidden; min-height: 0; }
+.panel { display: flex; flex-direction: column; overflow: hidden; border-right: 1px solid rgba(255,255,255,0.07); }
+.panel:last-child { border-right: none; }
+.ph { padding: 0.6rem 1rem; background: #16161f; border-bottom: 1px solid rgba(255,255,255,0.07); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.ph-t { font-size: 0.78rem; font-weight: 700; color: #f0f0f8; display: flex; align-items: center; gap: 0.4rem; }
+.pscroll { flex: 1; overflow-y: auto; padding: 1rem; }
+.rta { width: 100%; min-height: 180px; padding: 0.75rem; border: 1px solid rgba(255,255,255,0.12); border-radius: 7px; font-size: 0.8rem; line-height: 1.7; resize: vertical; background: #1e1e2a; color: #f0f0f8; }
+.rta:focus { outline: none; border-color: #6366f1; }
+.code-wrap { flex: 1; overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
+.code-ed { flex: 1; overflow: auto; padding: 1rem; background: #0a0a0f; font-family: 'JetBrains Mono', monospace; font-size: 0.73rem; color: #cdd6f4; line-height: 1.7; white-space: pre; outline: none; min-height: 0; }
+.lang-pill { font-size: 0.6rem; font-weight: 700; padding: 1px 6px; border-radius: 6px; background: rgba(255,255,255,0.08); color: #6e6e88; }
+.tc { border: 1.5px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 0.875rem; margin-bottom: 0.5rem; cursor: pointer; transition: all .15s; position: relative; background: transparent; }
+.tc:hover { border-color: #6366f1; }
+.tc.sel { border-color: #6366f1; background: rgba(99,102,241,0.15); }
+.tc.rec::after { content: 'Recommended'; position: absolute; top: -1px; right: 0.75rem; font-size: 0.58rem; font-weight: 700; background: #10b981; color: #fff; padding: 0 5px; border-radius: 0 0 5px 5px; }
+.prev-t { width: 100%; border-collapse: collapse; font-size: 0.7rem; font-family: 'JetBrains Mono', monospace; }
+.prev-t th { text-align: left; padding: 0.35rem 0.5rem; font-size: 0.58rem; font-weight: 700; text-transform: uppercase; color: #6e6e88; background: #1e1e2a; border-bottom: 1px solid rgba(255,255,255,0.07); }
+.prev-t td { padding: 0.32rem 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.07); color: #b8b8cc; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cdot { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; flex-shrink: 0; transition: border-color .15s; }
+.cdot:hover, .cdot.sel { border-color: #f0f0f8; }
+@media (max-width: 1100px) { .panels { grid-template-columns: 1fr; } .sb { display: none; } .main { margin-left: 0; } }
+</style>
+</head>
+<body>
+<div class="toast" id="_T"></div>
+<div class="app">
+<aside class="sb"><div class="sb-top"><div class="sb-logo">P</div><div class="sb-wm">Pipe<em>base</em></div></div><div class="sb-sec">Architecture</div><button class="sb-btn" onclick="go('architecture.html')">🏛️ Architecture</button><button class="sb-btn on" onclick="go('layer-editor.html')">🔧 Layer Editor</button><button class="sb-btn" onclick="go('architecture-docs.html')">📋 Documentation</button><button class="sb-btn" onclick="go('approvals.html')">✅ Approvals</button><div class="sb-sec">Platform</div><button class="sb-btn" onclick="go('data-viewer.html')">📊 Data Viewer</button><button class="sb-btn" onclick="go('connectors.html')">🔌 Connectors</button><button class="sb-btn" onclick="go('operations.html')">📡 Operations</button><button class="sb-btn" onclick="go('marketplace.html')">🏪 Marketplace</button><button class="sb-btn" onclick="go('team.html')">👥 Team</button><button class="sb-btn" onclick="go('dashboard.html')">📊 Dashboard</button><button class="sb-btn" onclick="go('/')">🏠 Back to site</button><div class="sb-foot"><div class="sb-av" id="_AV">?</div><div class="sb-un" id="_UN">...</div><button style="background:none;border:none;color:#3a3a50;font-size:0.72rem;cursor:pointer" onclick="logout()">↩</button></div></aside>
+<div class="main full-h">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:0.75rem">
+      <button class="btn btn-g btn-sm" onclick="go('architecture.html')">← Back</button>
+      <span style="color:rgba(255,255,255,0.15)">|</span>
+      <span style="font-size:0.85rem;font-weight:700;color:#f0f0f8" id="AL">Loading...</span>
+      <span id="GL" style="font-size:0.65rem;padding:1px 7px;border-radius:10px;background:#252534;color:#6e6e88"></span>
+    </div>
+    <div style="display:flex;gap:0.4rem">
+      <button class="btn btn-g btn-sm" id="DBN">📋 Docs</button>
+      <button class="btn btn-g btn-sm" id="ABN">✅ Approvals</button>
+      <button class="btn btn-p btn-sm" onclick="openAddL()">+ Layer</button>
+    </div>
+  </div>
+  <div class="flow-bar"><div style="font-size:0.7rem;color:#6e6e88;margin-right:1rem;flex-shrink:0">Layers:</div><div id="FN" style="display:flex;align-items:center;gap:0"></div></div>
+  <div class="appr-bar dr" id="AB"><span style="font-size:0.78rem;color:#6e6e88" id="BT">Select a layer to start editing</span><div style="margin-left:auto;display:flex;gap:0.4rem" id="BA"></div></div>
+  <div class="panels">
+    <div class="panel"><div class="ph"><div class="ph-t">📝 Business rules <span id="LB" style="font-size:0.62rem;padding:1px 6px;border-radius:6px;background:#252534;color:#6e6e88">No layer</span></div><button class="btn btn-g btn-sm" onclick="sugR()" id="SRB" disabled>🧠 AI suggest</button></div><div class="pscroll" id="RP"><div style="text-align:center;padding:2rem;color:#6e6e88"><div style="font-size:1.5rem;opacity:0.1;margin-bottom:0.5rem">📝</div><div style="font-size:0.82rem;font-weight:600;color:#b8b8cc;margin-bottom:0.25rem">Select a layer</div><div style="font-size:0.75rem">Click any layer in the flow bar above</div></div></div></div>
+    <div class="panel"><div class="ph"><div class="ph-t">⚙️ Generated code <span class="lang-pill" id="LP" style="display:none"></span></div><div style="display:flex;gap:0.35rem"><button class="btn btn-g btn-sm" onclick="showTM()" id="TB" disabled>🛠 Tool</button><button class="btn btn-p btn-sm" onclick="genCode()" id="GB" disabled>⚡ Generate</button></div></div><div class="code-wrap" id="CW"><div style="text-align:center;padding:2rem;color:#6e6e88;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center"><div style="font-size:1.5rem;opacity:0.1;margin-bottom:0.5rem">⚙️</div><div style="font-size:0.82rem;font-weight:600;color:#b8b8cc;margin-bottom:0.25rem">No code yet</div><div style="font-size:0.75rem">Define rules and click Generate</div></div></div></div>
+    <div class="panel"><div class="ph"><div class="ph-t">👁 Preview &amp; tools</div><button class="btn btn-g btn-sm" onclick="loadPrev()" id="PB" disabled>↻ Live data</button></div><div class="pscroll" id="PP"><div style="text-align:center;padding:2rem;color:#6e6e88"><div style="font-size:1.5rem;opacity:0.1;margin-bottom:0.5rem">👁</div><div style="font-size:0.75rem">Generate code to see tool options</div></div></div></div>
+  </div>
+</div>
+</div>
+
+<div class="ov" id="ALM" onclick="if(event.target===this)_cm('ALM')"><div class="mbox" onclick="event.stopPropagation()" style="max-width:440px">
+  <div class="mhdr"><div class="mtitle">Add layer</div><button class="mx" onclick="_cm('ALM')">✕</button></div>
+  <div class="mbody">
+    <div class="fg"><label class="fl">Layer name *</label><input class="fi" id="LN" placeholder="e.g. Bronze, Staging, Gold, Serving"></div>
+    <div class="fg"><label class="fl">Purpose</label><textarea class="fi fta" id="LPP" placeholder="What does this layer contain and why?"></textarea></div>
+    <div class="fg"><label class="fl">Color</label><div style="display:flex;gap:0.4rem;flex-wrap:wrap">
+      <div class="cdot sel" style="background:#94a3b8" onclick="pC('#94a3b8',this)"></div>
+      <div class="cdot" style="background:#b45309" onclick="pC('#b45309',this)"></div>
+      <div class="cdot" style="background:#d97706" onclick="pC('#d97706',this)"></div>
+      <div class="cdot" style="background:#10b981" onclick="pC('#10b981',this)"></div>
+      <div class="cdot" style="background:#6366f1" onclick="pC('#6366f1',this)"></div>
+      <div class="cdot" style="background:#8b5cf6" onclick="pC('#8b5cf6',this)"></div>
+      <div class="cdot" style="background:#ec4899" onclick="pC('#ec4899',this)"></div>
+    </div></div>
+  </div>
+  <div class="mfoot"><button class="btn btn-g" onclick="_cm('ALM')">Cancel</button><button class="btn btn-p" onclick="addL()">Add layer</button></div>
+</div></div>
+
+<div class="ov" id="TM" onclick="if(event.target===this)_cm('TM')"><div class="mbox" onclick="event.stopPropagation()" style="max-width:600px">
+  <div class="mhdr"><div class="mtitle">🛠 Select transformation tool</div><button class="mx" onclick="_cm('TM')">✕</button></div>
+  <div class="mbody" style="max-height:60vh;overflow-y:auto" id="TMB"></div>
+  <div class="mfoot"><button class="btn btn-g" onclick="_cm('TM')">Cancel</button><button class="btn btn-p" onclick="confTool()">Use this tool → Regenerate</button></div>
+</div></div>
+
+<script>
+
+var _API = 'https://api.pipebase.app';
+async function _boot(cb) {
+  var t = localStorage.getItem('pb_token'); if (!t) return go('/');
+  try {
+    var r = await _hit('/api/auth/me');
+    var n = r.user.name || r.user.email.split('@')[0];
+    document.getElementById('_AV').textContent = n[0].toUpperCase();
+    document.getElementById('_UN').textContent = n;
+    window._user = r.user; if (cb) await cb(r.user);
+  } catch(e) { localStorage.removeItem('pb_token'); go('/'); }
+}
+async function _hit(path, opts) {
+  opts = opts || {};
+  var h = {'Content-Type': 'application/json'};
+  var t = localStorage.getItem('pb_token'); if (t) h['Authorization'] = 'Bearer ' + t;
+  var r = await fetch(_API + path, Object.assign({}, opts, {headers: Object.assign({}, h, opts.headers || {})}));
+  var d = await r.json(); if (!r.ok) throw new Error(d.error || 'Failed'); return d;
+}
+function go(u) { window.location.href = u; }
+function logout() { localStorage.removeItem('pb_token'); go('/'); }
+function _x(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function _ago(ts) { if(!ts)return''; var d=Date.now()-new Date(ts),m=Math.floor(d/60000); if(m<1)return'just now'; if(m<60)return m+'m ago'; if(m<1440)return Math.floor(m/60)+'h ago'; return Math.floor(m/1440)+'d ago'; }
+function _toast(msg, type) { type=type||''; var t=document.getElementById('_T'); t.textContent=msg; t.className='toast'+(type?' '+type:''); t.classList.add('show'); setTimeout(function(){t.classList.remove('show');},3200); }
+function _om(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
+function _cm(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; }
+
+var QS=new URLSearchParams(location.search), archId=QS.get('arch');
+var arch=null,layers=[],active=null,selTool='dbt',toolOpts=[],pickedCol='#94a3b8',editR='',pendTool=null;
+document.addEventListener('DOMContentLoaded',function(){
+  if(!archId)return go('architecture.html');
+  _boot(function(){ return loadArch(); });
+});
+async function loadArch(){
+  var r=await _hit('/api/medallion/'+archId);
+  arch=r.architecture;layers=r.layers||[];
+  document.getElementById('AL').textContent=arch.name;
+  var gL={auto:'⚡ Auto',supervised:'👁 Supervised',governed:'🔐 Governed',enterprise:'🏢 Enterprise'};
+  document.getElementById('GL').textContent=gL[arch.governanceLevel]||arch.governanceLevel;
+  var archQ='?arch='+archId;
+  document.getElementById('DBN').onclick=function(){go('architecture-docs.html'+archQ);};
+  document.getElementById('ABN').onclick=function(){go('approvals.html'+archQ);};
+  renderFlow();
+  if(layers.length&&!active)selLayer(layers[0]);
+}
+function renderFlow(){
+  var c=document.getElementById('FN');
+  c.innerHTML=layers.map(function(l,i){
+    var ia=active&&active._id===l._id,col=l.color||'#94a3b8';
+    var si=l.approvalStatus==='approved'?'<span style="font-size:0.55rem"> ✓</span>':l.approvalStatus==='pending_review'?'<span style="font-size:0.55rem;color:#f59e0b"> ⏳</span>':'';
+    return (i>0?'<div class="farr">→</div>':'')+'<div class="fp" onclick="selLayer(layers['+i+'])"><div class="pill" style="border-color:'+col+';color:'+col+';'+(ia?'background:'+col+'22;opacity:1':'opacity:0.55')+'"><div style="width:6px;height:6px;border-radius:50%;background:'+col+';flex-shrink:0"></div>'+_x(l.name)+si+'</div><div class="fsub">'+(l.recordCount!=null?l.recordCount.toLocaleString()+' rows':l.status||'draft')+'</div></div>';
+  }).join('')+'<div class="farr">→</div><div class="fadd" onclick="openAddL()"><div class="fadd-btn">＋</div><div style="font-size:0.58rem;color:#3a3a50;margin-top:0.15rem">Add</div></div>';
+}
+function selLayer(l){
+  active=typeof l==='string'?layers.find(function(x){return x._id===l;}):l;if(!active)return;
+  selTool=active.selectedTool||'dbt';editR=active.businessRules||active.suggestedRules||'';
+  renderFlow();renderRules();renderCode();renderPrev();renderBanner();
+  ['SRB','GB','TB','PB'].forEach(function(id){document.getElementById(id).disabled=false;});
+  var b=document.getElementById('LB');b.textContent=active.name;b.style.border='1px solid '+(active.color||'#94a3b8');b.style.color=active.color||'#94a3b8';b.style.background='transparent';
+}
+function renderRules(){
+  var sug=active.suggestedRules&&active.suggestedRules!==active.businessRules?'<div style="margin-top:1rem;padding-top:0.875rem;border-top:1px solid rgba(255,255,255,0.07)"><div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#a5b4fc;margin-bottom:0.4rem">🧠 AI suggested</div><div style="font-size:0.75rem;color:#b8b8cc;line-height:1.7;white-space:pre-wrap">'+_x(active.suggestedRules)+'</div><button class="btn btn-g btn-sm" style="margin-top:0.4rem" onclick="useS()">Use these →</button></div>':'';
+  document.getElementById('RP').innerHTML='<div style="margin-bottom:0.875rem"><div style="font-size:0.85rem;font-weight:700;color:#f0f0f8;margin-bottom:0.2rem">'+_x(active.name)+'</div><div style="font-size:0.75rem;color:#6e6e88">'+_x(active.purpose||'No purpose defined')+'</div></div><div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6e6e88;margin-bottom:0.35rem">Business rules</div><textarea class="rta" id="RTA" placeholder="Describe what should happen in this layer in plain English...
+
+Examples:
+• Remove duplicates on show_id
+• Fill null directors with Unknown
+• Parse duration into value + unit
+• Validate show_id is never null" oninput="editR=this.value">'+_x(editR)+'</textarea><div style="display:flex;gap:0.4rem;margin-top:0.625rem;flex-wrap:wrap"><button class="btn btn-p btn-sm" onclick="saveAndGen()">⚡ Save &amp; generate</button><button class="btn btn-g btn-sm" onclick="saveR()">💾 Save</button></div>'+sug;
+}
+async function sugR(){
+  var btn=document.getElementById('SRB');btn.disabled=true;btn.innerHTML='<div class="spin"></div>';
+  try{
+    var idx=layers.findIndex(function(l){return l._id===active._id;}),up=idx>0?layers[idx-1]:null;
+    var r=await _hit('/api/medallion/'+archId+'/layers/'+active._id+'/suggest-rules',{method:'POST',body:JSON.stringify({upstreamLayerName:up?up.name:'source',layerPurpose:active.purpose})});
+    var txt=(r.rules||[]).map(function(x){return '• '+x.description;}).join('
+');
+    await _hit('/api/medallion/'+archId+'/layers/'+active._id,{method:'PUT',body:JSON.stringify({suggestedRules:txt})});
+    active.suggestedRules=txt;renderRules();_toast('AI suggested '+(r.rules||[]).length+' rules','ok');
+  }catch(e){_toast(e.message,'err');}
+  btn.disabled=false;btn.textContent='🧠 AI suggest';
+}
+function useS(){editR=active.suggestedRules;document.getElementById('RTA').value=editR;_toast('Rules loaded','ok');}
+async function saveR(){var rules=document.getElementById('RTA')&&document.getElementById('RTA').value||editR;await _hit('/api/medallion/'+archId+'/layers/'+active._id,{method:'PUT',body:JSON.stringify({businessRules:rules})});active.businessRules=rules;_toast('Saved','ok');}
+async function saveAndGen(){await saveR();await genCode();}
+function renderCode(){
+  var w=document.getElementById('CW');
+  if(!active.generatedCode){w.innerHTML='<div style="padding:1.25rem;flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;color:#6e6e88"><div style="font-size:0.8rem;margin-bottom:0.4rem">Tool: <span style="color:#a5b4fc;font-weight:600">'+tName(selTool)+'</span></div><div style="font-size:0.72rem">Add rules and click Generate</div></div>';document.getElementById('LP').style.display='none';return;}
+  var lm={dbt:'SQL',dbt_cloud:'SQL',databricks:'Python',spark:'Python',snowflake:'SQL',aws_glue:'Python',azure_df:'JSON',python:'Python'};
+  document.getElementById('LP').textContent=lm[active.selectedTool]||'SQL';document.getElementById('LP').style.display='';
+  w.innerHTML='<div class="code-ed" contenteditable="true" spellcheck="false" id="CE" onblur="saveCE(this.textContent)">'+_x(active.generatedCode)+'</div><div style="display:flex;gap:0.35rem;padding:0.4rem 0.875rem;border-top:1px solid rgba(255,255,255,0.07);background:#111118;flex-shrink:0"><button class="btn btn-g btn-sm" onclick="copyCode()">📋 Copy</button><button class="btn btn-g btn-sm" onclick="dlCode()">⬇ Download</button></div>';
+}
+async function genCode(){
+  if(!active)return;
+  var rules=document.getElementById('RTA')&&document.getElementById('RTA').value||editR||active.businessRules;
+  if(!rules||!rules.trim()){_toast('Add business rules first','warn');return;}
+  var btn=document.getElementById('GB');btn.disabled=true;btn.innerHTML='<div class="spin"></div> Generating...';
+  var w=document.getElementById('CW');w.innerHTML='<div style="display:flex;align-items:center;gap:0.75rem;padding:1.5rem;color:#6e6e88;font-size:0.8rem"><div class="spin"></div> AI is writing transformation code...</div>';
+  try{
+    var tr=await _hit('/api/medallion/'+archId+'/layers/'+active._id+'/recommend-tools',{method:'POST',body:JSON.stringify({businessRules:rules,volume:'medium'})});
+    toolOpts=tr.tools||[];
+    var idx=layers.findIndex(function(l){return l._id===active._id;});
+    await _hit('/api/medallion/'+archId+'/layers/'+active._id+'/generate-code',{method:'POST',body:JSON.stringify({businessRules:rules,tool:selTool,sourceLayer:idx>0?layers[idx-1].name:'source',targetLayer:active.name})});
+    var up=await _hit('/api/medallion/'+archId);layers=up.layers;active=layers.find(function(l){return l._id===active._id;});
+    renderCode();renderPrevTools();_toast('Code generated!','ok');
+  }catch(e){w.innerHTML='<div style="padding:1.25rem;color:#ef4444;font-size:0.8rem">Failed: '+_x(e.message)+'</div>';_toast('Failed','err');}
+  btn.disabled=false;btn.textContent='⚡ Regenerate';
+}
+async function saveCE(c){if(!active||!c)return;await _hit('/api/medallion/'+archId+'/layers/'+active._id,{method:'PUT',body:JSON.stringify({generatedCode:c})});active.generatedCode=c;}
+function copyCode(){navigator.clipboard.writeText(active&&active.generatedCode||'');_toast('Copied!','ok');}
+function dlCode(){if(!active||!active.generatedCode)return;var ex={dbt:'sql',dbt_cloud:'sql',databricks:'py',spark:'py',python:'py',snowflake:'sql',aws_glue:'py',azure_df:'json'}[active.selectedTool]||'sql';var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([active.generatedCode],{type:'text/plain'}));a.download=active.name.toLowerCase().replace(/\s+/g,'_')+'.'+ex;a.click();}
+function renderPrev(){if(!toolOpts.length)renderPrevTools();}
+function renderPrevTools(){
+  var p=document.getElementById('PP');
+  if(!toolOpts.length){p.innerHTML='<div style="padding:1rem"><div style="font-size:0.78rem;font-weight:600;color:#f0f0f8;margin-bottom:0.5rem">Tool: <span style="color:#a5b4fc">'+tName(selTool)+'</span></div><div style="padding:0.75rem;background:#1e1e2a;border-radius:7px;font-size:0.75rem;color:#b8b8cc;margin-bottom:0.875rem">Governance: <strong>'+arch.governanceLevel+'</strong></div>'+(active&&active.generatedCode?'<button class="btn btn-am btn-sm" style="width:100%" onclick="subAppr()">'+(arch.governanceLevel==='auto'?'🚀 Deploy now':'📤 Submit for approval')+'</button>':'')+'</div>';return;}
+  p.innerHTML='<div style="padding:1rem"><div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6e6e88;margin-bottom:0.625rem">Tool recommendations</div>'+toolOpts.slice(0,4).map(function(t){return '<div class="tc '+(t.id===selTool?'sel':'')+' '+(t.recommended?'rec':'')+'" onclick="document.querySelectorAll('#PP .tc').forEach(function(c){c.classList.remove('sel');});this.classList.add('sel');selTool=''+t.id+'';"><div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.2rem"><span>'+t.emoji+'</span><span style="font-size:0.78rem;font-weight:700;color:#f0f0f8">'+t.name+'</span><span style="font-size:0.68rem;color:#10b981;font-weight:600;margin-left:auto">'+t.estimatedCostPerRun+'</span></div><div style="font-size:0.7rem;color:#6e6e88;margin:0.2rem 0">'+t.description+'</div><div style="font-size:0.68rem;color:#6e6e88">⏱ '+t.estimatedRuntime+(t.recommended?' · ⭐ Best fit':'')+'</div></div>';}  ).join('')+'<div style="margin-top:0.875rem;padding-top:0.875rem;border-top:1px solid rgba(255,255,255,0.07)"><div style="font-size:0.72rem;color:#6e6e88;margin-bottom:0.5rem">Governance: <strong style="color:#f0f0f8">'+arch.governanceLevel+'</strong></div><button class="btn btn-gr btn-sm" style="width:100%" onclick="subAppr()">'+(arch.governanceLevel==='auto'?'🚀 Deploy now':'📤 Submit for approval')+'</button></div></div>';
+}
+async function loadPrev(){
+  if(!active||!arch.sourceConnectorId){_toast('No connector linked','warn');return;}
+  var p=document.getElementById('PP'),prev=p.innerHTML;
+  p.innerHTML='<div style="display:flex;gap:0.5rem;align-items:center;padding:1rem;color:#6e6e88;font-size:0.75rem"><div class="spin"></div> Loading...</div>';
+  try{
+    var r=await _hit('/api/connectors/'+arch.sourceConnectorId+'/sample',{method:'POST',body:JSON.stringify({table:'',limit:8})});
+    var rows=r.sample&&r.sample.rows||[];if(!rows.length){p.innerHTML=prev;_toast('No data','warn');return;}
+    var cols=Object.keys(rows[0]).slice(0,5);
+    p.innerHTML='<div style="padding:1rem"><div style="font-size:0.65rem;color:#10b981;margin-bottom:0.4rem;font-weight:700">Live data — '+rows.length+' rows</div><div style="overflow-x:auto"><table class="prev-t"><thead><tr>'+cols.map(function(c){return '<th>'+_x(c)+'</th>';}).join('')+'</tr></thead><tbody>'+rows.map(function(r){return '<tr>'+cols.map(function(c){return '<td>'+_x(String(r[c]!=null?r[c]:''))+'</td>';}).join('')+'</tr>';}).join('')+'</tbody></table></div></div>';
+  }catch(e){p.innerHTML=prev;_toast(e.message,'err');}
+}
+function renderBanner(){
+  var B=document.getElementById('AB'),BT=document.getElementById('BT'),BA=document.getElementById('BA');
+  if(!active){B.className='appr-bar dr';BT.innerHTML='<span style="color:#6e6e88">Select a layer to start editing</span>';BA.innerHTML='';return;}
+  var s=active.approvalStatus||'pending';
+  if(s==='approved'){B.className='appr-bar ap';BT.innerHTML='<span style="color:#10b981;font-weight:600">✓ Approved</span> — '+_x(active.name)+' is approved';BA.innerHTML='<button class="btn btn-g btn-sm" onclick="dlCode()">⬇ Export</button>';}
+  else if(s==='pending_review'){B.className='appr-bar pd';BT.innerHTML='<span style="color:#f59e0b;font-weight:600">⏳ Pending</span> — '+_x(active.name)+' submitted';BA.innerHTML='<button class="btn btn-gr btn-sm" onclick="qAppr()">✓ Approve</button><button class="btn btn-r btn-sm" onclick="qRej()">✕ Reject</button>';}
+  else{B.className='appr-bar dr';BT.innerHTML='<span style="color:#6e6e88">Draft</span> — editing <strong style="color:#f0f0f8">'+_x(active.name)+'</strong>';BA.innerHTML=active&&active.generatedCode?'<button class="btn btn-am btn-sm" onclick="subAppr()">📤 Submit for approval</button>':'';}
+}
+async function subAppr(){
+  if(!active||!active.generatedCode){_toast('Generate code first','warn');return;}
+  var r=await _hit('/api/medallion/'+archId+'/layers/'+active._id+'/submit-approval',{method:'POST',body:JSON.stringify({changeType:'transformation',description:active.name+' transformation',code:active.generatedCode,businessRules:active.businessRules})});
+  if(r.autoApproved){active.approvalStatus='approved';_toast('Auto-deployed! 🚀','ok');}
+  else{active.approvalStatus='pending_review';_toast('Submitted','ok');}
+  renderBanner();renderFlow();
+}
+async function qAppr(){
+  var pa=await _hit('/api/medallion/'+archId+'/approvals');
+  var ap=pa.approvals.find(function(a){return a.layerId===active._id&&a.status==='pending';});
+  if(ap)await _hit('/api/medallion/'+archId+'/approvals/'+ap._id,{method:'PATCH',body:JSON.stringify({status:'approved',notes:'Quick approved'})});
+  active.approvalStatus='approved';renderBanner();renderFlow();_toast('Approved ✓','ok');
+}
+async function qRej(){
+  var notes=prompt('Reason (optional):');if(notes===null)return;
+  var pa=await _hit('/api/medallion/'+archId+'/approvals');
+  var ap=pa.approvals.find(function(a){return a.layerId===active._id&&a.status==='pending';});
+  if(ap)await _hit('/api/medallion/'+archId+'/approvals/'+ap._id,{method:'PATCH',body:JSON.stringify({status:'rejected',notes:notes})});
+  active.approvalStatus='rejected';renderBanner();renderFlow();_toast('Rejected','warn');
+}
+function showTM(){
+  var tools=toolOpts.length?toolOpts:[{id:'dbt',emoji:'🔧',name:'dbt Core',estimatedCostPerRun:'$0',estimatedRuntime:'~2 min',description:'SQL, free, version controlled',recommended:true},{id:'databricks',emoji:'🧱',name:'Databricks',estimatedCostPerRun:'$0.40/run',estimatedRuntime:'~30s',description:'Large-scale Spark',recommended:false},{id:'snowflake',emoji:'❄️',name:'Snowflake Tasks',estimatedCostPerRun:'$0.08/run',estimatedRuntime:'~1 min',description:'Native Snowflake SQL',recommended:false},{id:'aws_glue',emoji:'🔗',name:'AWS Glue',estimatedCostPerRun:'$0.44/run',estimatedRuntime:'~3 min',description:'Serverless ETL on AWS',recommended:false},{id:'python',emoji:'🐍',name:'Python Script',estimatedCostPerRun:'~$0.02/run',estimatedRuntime:'~3 min',description:'Custom Python',recommended:false},{id:'azure_df',emoji:'🏭',name:'Azure Data Factory',estimatedCostPerRun:'$0.25/run',estimatedRuntime:'~2 min',description:'Azure ETL service',recommended:false}];
+  pendTool=selTool;
+  document.getElementById('TMB').innerHTML=tools.map(function(t){return '<div class="tc '+(t.id===selTool?'sel':'')+' '+(t.recommended?'rec':'')+'" onclick="document.querySelectorAll('#TMB .tc').forEach(function(c){c.classList.remove('sel');});this.classList.add('sel');pendTool=''+t.id+'';"><div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.2rem"><span>'+t.emoji+'</span><span style="font-size:0.78rem;font-weight:700;color:#f0f0f8">'+t.name+'</span><span style="font-size:0.68rem;color:#10b981;font-weight:600;margin-left:auto">'+t.estimatedCostPerRun+'</span></div><div style="font-size:0.7rem;color:#6e6e88;margin:0.2rem 0">'+t.description+'</div><div style="font-size:0.68rem;color:#6e6e88">⏱ '+t.estimatedRuntime+(t.recommended?' · ⭐ Recommended':'')+'</div></div>';}  ).join('');
+  _om('TM');
+}
+function confTool(){if(pendTool){selTool=pendTool;_cm('TM');genCode();}}
+function openAddL(){document.getElementById('LN').value='';document.getElementById('LPP').value='';pickedCol='#94a3b8';document.querySelectorAll('.cdot').forEach(function(d){d.classList.remove('sel');});document.querySelector('.cdot').classList.add('sel');_om('ALM');}
+function pC(c,el){pickedCol=c;document.querySelectorAll('.cdot').forEach(function(d){d.classList.remove('sel');});el.classList.add('sel');}
+async function addL(){
+  var name=document.getElementById('LN').value.trim(),purpose=document.getElementById('LPP').value.trim();
+  if(!name){_toast('Name required','warn');return;}
+  await _hit('/api/medallion/'+archId+'/layers',{method:'POST',body:JSON.stringify({name:name,purpose:purpose,color:pickedCol})});
+  _cm('ALM');await loadArch();_toast('Layer added!','ok');
+}
+function tName(id){return{dbt:'dbt Core',dbt_cloud:'dbt Cloud',databricks:'Databricks',spark:'Apache Spark',snowflake:'Snowflake Tasks',aws_glue:'AWS Glue',azure_df:'Azure Data Factory',python:'Python Script'}[id]||id;}
+</script>
+</body>
+</html>

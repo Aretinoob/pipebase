@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Architecture Docs — Pipebase</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-font-smoothing: antialiased; }
+body { font-family: 'Inter', system-ui, sans-serif; background: #0a0a0f; color: #f0f0f8; min-height: 100vh; }
+button, input, textarea, select { font-family: inherit; }
+.app { display: flex; min-height: 100vh; }
+.sb { width: 220px; flex-shrink: 0; background: #111118; border-right: 1px solid rgba(255,255,255,0.07); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; overflow-y: auto; z-index: 10; }
+.sb-top { padding: 1rem; border-bottom: 1px solid rgba(255,255,255,0.07); display: flex; align-items: center; gap: 0.6rem; }
+.sb-logo { width: 28px; height: 28px; background: #6366f1; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-weight: 900; color: #fff; font-size: 0.9rem; flex-shrink: 0; }
+.sb-wm { font-size: 0.95rem; font-weight: 800; color: #f0f0f8; }
+.sb-wm em { font-style: normal; color: #a5b4fc; }
+.sb-sec { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #3a3a50; padding: 0.875rem 0.875rem 0.3rem; }
+.sb-btn { display: flex; align-items: center; gap: 0.5rem; padding: 0.45rem 0.875rem; font-size: 0.8rem; font-weight: 500; color: #6e6e88; border: none; background: none; width: 100%; text-align: left; cursor: pointer; border-left: 2px solid transparent; transition: all .15s; }
+.sb-btn:hover { color: #f0f0f8; background: #1e1e2a; }
+.sb-btn.on { color: #a5b4fc; background: rgba(99,102,241,0.15); border-left-color: #6366f1; }
+.sb-foot { padding: 0.75rem; border-top: 1px solid rgba(255,255,255,0.07); margin-top: auto; display: flex; align-items: center; gap: 0.5rem; }
+.sb-av { width: 26px; height: 26px; border-radius: 50%; background: #4f46e5; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; color: #fff; flex-shrink: 0; }
+.sb-un { font-size: 0.78rem; font-weight: 600; color: #b8b8cc; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.main { flex: 1; margin-left: 220px; display: flex; flex-direction: column; }
+.topbar { background: #111118; border-bottom: 1px solid rgba(255,255,255,0.07); height: 52px; padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 5; }
+.scroll { flex: 1; overflow-y: auto; }
+.pad { padding: 1.5rem; max-width: 1000px; }
+.btn { display: inline-flex; align-items: center; gap: 5px; padding: 0.42rem 0.875rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; border: none; cursor: pointer; transition: all .15s; white-space: nowrap; }
+.btn-p { background: #6366f1; color: #fff; } .btn-p:hover { background: #4f46e5; }
+.btn-g { background: transparent; color: #b8b8cc; border: 1px solid rgba(255,255,255,0.15); } .btn-g:hover { background: #1e1e2a; color: #f0f0f8; }
+.btn-gr { background: #10b981; color: #fff; } .btn-gr:hover { background: #059669; }
+.btn-am { background: #f59e0b; color: #000; }
+.btn-r { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.25); }
+.btn-sm { padding: 0.28rem 0.65rem; font-size: 0.74rem; }
+.btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.fg { margin-bottom: 0.875rem; }
+.fl { display: block; font-size: 0.7rem; font-weight: 700; color: #6e6e88; margin-bottom: 0.28rem; text-transform: uppercase; letter-spacing: 0.4px; }
+.fi { width: 100%; padding: 0.52rem 0.75rem; border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; font-size: 0.85rem; color: #f0f0f8; background: #1e1e2a; transition: border-color .15s; }
+.fi:focus { outline: none; border-color: #6366f1; }
+.fta { min-height: 80px; resize: vertical; line-height: 1.6; }
+.ov { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 100; display: flex; align-items: flex-start; justify-content: center; padding: 2rem 1rem; overflow-y: auto; opacity: 0; pointer-events: none; transition: opacity .2s; }
+.ov.open { opacity: 1; pointer-events: all; }
+.mbox { background: #16161f; border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; width: 100%; max-width: 580px; box-shadow: 0 25px 80px rgba(0,0,0,0.6); transform: scale(0.97); transition: transform .2s; }
+.ov.open .mbox { transform: scale(1); }
+.mhdr { padding: 1rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.07); display: flex; align-items: center; justify-content: space-between; }
+.mtitle { font-size: 0.9rem; font-weight: 700; color: #f0f0f8; }
+.mx { background: none; border: none; color: #6e6e88; cursor: pointer; font-size: 1rem; padding: 4px; border-radius: 4px; }
+.mx:hover { background: #252534; color: #f0f0f8; }
+.mbody { padding: 1.25rem; max-height: 72vh; overflow-y: auto; }
+.mfoot { padding: 0.875rem 1.25rem; border-top: 1px solid rgba(255,255,255,0.07); display: flex; justify-content: flex-end; gap: 0.5rem; }
+.badge { display: inline-flex; align-items: center; font-size: 0.67rem; font-weight: 700; padding: 2px 7px; border-radius: 20px; }
+.bg { background: rgba(16,185,129,0.15); color: #10b981; }
+.ba { background: rgba(245,158,11,0.15); color: #f59e0b; }
+.br { background: rgba(239,68,68,0.15); color: #ef4444; }
+.bd { background: #252534; color: #6e6e88; border: 1px solid rgba(255,255,255,0.1); }
+.spin { width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.15); border-top-color: #6366f1; border-radius: 50%; animation: sp .7s linear infinite; display: inline-block; vertical-align: middle; }
+.spin-lg { width: 28px; height: 28px; border-width: 3px; }
+@keyframes sp { to { transform: rotate(360deg); } }
+.toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(10px); background: #252534; color: #f0f0f8; border: 1px solid rgba(255,255,255,0.12); padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.8rem; font-weight: 500; z-index: 300; opacity: 0; transition: all .25s; pointer-events: none; white-space: nowrap; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.ok { background: #10b981; border-color: transparent; }
+.toast.err { background: #ef4444; border-color: transparent; }
+.toast.warn { background: #f59e0b; border-color: transparent; color: #000; }
+@media (max-width: 768px) { .sb { display: none; } .main { margin-left: 0; } }
+
+
+</style>
+</head>
+<body>
+<div class="toast" id="_T"></div>
+<div class="app">
+<aside class="sb"><div class="sb-top"><div class="sb-logo">P</div><div class="sb-wm">Pipe<em>base</em></div></div><div class="sb-sec">Architecture</div><button class="sb-btn" onclick="go('architecture.html')">🏛️ Architecture</button><button class="sb-btn" onclick="go('layer-editor.html')">🔧 Layer Editor</button><button class="sb-btn on" onclick="go('architecture-docs.html')">📋 Documentation</button><button class="sb-btn" onclick="go('approvals.html')">✅ Approvals</button><div class="sb-sec">Platform</div><button class="sb-btn" onclick="go('data-viewer.html')">📊 Data Viewer</button><button class="sb-btn" onclick="go('connectors.html')">🔌 Connectors</button><button class="sb-btn" onclick="go('operations.html')">📡 Operations</button><button class="sb-btn" onclick="go('marketplace.html')">🏪 Marketplace</button><button class="sb-btn" onclick="go('team.html')">👥 Team</button><button class="sb-btn" onclick="go('dashboard.html')">📊 Dashboard</button><button class="sb-btn" onclick="go('/')">🏠 Back to site</button><div class="sb-foot"><div class="sb-av" id="_AV">?</div><div class="sb-un" id="_UN">...</div><button style="background:none;border:none;color:#3a3a50;font-size:0.72rem;cursor:pointer" onclick="logout()">↩</button></div></aside>
+<div class="main">
+<div class="topbar"><div style="display:flex;align-items:center;gap:0.75rem"><button class="btn btn-g btn-sm" id="EL">← Layer Editor</button><span style="font-size:0.875rem;font-weight:700;color:#f0f0f8" id="AL">Documentation</span></div><div style="display:flex;gap:0.5rem"><button class="btn btn-g btn-sm" onclick="expMd()">⬇ Markdown</button><button class="btn btn-p btn-sm" onclick="genDocs()" id="GDB">🧠 Generate docs</button></div></div>
+<div class="scroll"><div class="pad">
+  <div id="DC">
+    <div style="text-align:center;padding:4rem 2rem">
+      <div style="font-size:2.5rem;opacity:0.1;margin-bottom:0.875rem">📋</div>
+      <div style="font-size:1rem;font-weight:700;margin-bottom:0.5rem">No documentation yet</div>
+      <div style="font-size:0.82rem;color:#6e6e88;max-width:40ch;margin:0 auto 1.25rem">Generate AI documentation — technical spec, lineage diagram, data dictionary, and runbook</div>
+      <button class="btn btn-p" onclick="genDocs()">🧠 Generate documentation</button>
+    </div>
+  </div>
+</div></div>
+</div>
+</div>
+<script>
+
+var _API = 'https://api.pipebase.app';
+async function _boot(cb) {
+  var t = localStorage.getItem('pb_token'); if (!t) return go('/');
+  try {
+    var r = await _hit('/api/auth/me');
+    var n = r.user.name || r.user.email.split('@')[0];
+    document.getElementById('_AV').textContent = n[0].toUpperCase();
+    document.getElementById('_UN').textContent = n;
+    window._user = r.user; if (cb) await cb(r.user);
+  } catch(e) { localStorage.removeItem('pb_token'); go('/'); }
+}
+async function _hit(path, opts) {
+  opts = opts || {};
+  var h = {'Content-Type': 'application/json'};
+  var t = localStorage.getItem('pb_token'); if (t) h['Authorization'] = 'Bearer ' + t;
+  var r = await fetch(_API + path, Object.assign({}, opts, {headers: Object.assign({}, h, opts.headers || {})}));
+  var d = await r.json(); if (!r.ok) throw new Error(d.error || 'Failed'); return d;
+}
+function go(u) { window.location.href = u; }
+function logout() { localStorage.removeItem('pb_token'); go('/'); }
+function _x(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function _ago(ts) { if(!ts)return''; var d=Date.now()-new Date(ts),m=Math.floor(d/60000); if(m<1)return'just now'; if(m<60)return m+'m ago'; if(m<1440)return Math.floor(m/60)+'h ago'; return Math.floor(m/1440)+'d ago'; }
+function _toast(msg, type) { type=type||''; var t=document.getElementById('_T'); t.textContent=msg; t.className='toast'+(type?' '+type:''); t.classList.add('show'); setTimeout(function(){t.classList.remove('show');},3200); }
+function _om(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
+function _cm(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; }
+
+
+var QS=new URLSearchParams(location.search),archId=QS.get('arch'),arch=null,layers=[],docs=null;
+document.addEventListener('DOMContentLoaded',function(){
+  _boot(function(){
+    if(archId){
+      document.getElementById('EL').onclick=function(){go('layer-editor.html?arch='+archId);};
+      return _hit('/api/medallion/'+archId).then(function(ar){
+        arch=ar.architecture;layers=ar.layers||[];
+        document.getElementById('AL').textContent=arch.name+' — Docs';
+        return _hit('/api/medallion/'+archId+'/docs').then(function(dr){docs=dr.docs;render(dr.docs,dr.generatedAt);}).catch(function(){});
+      });
+    }
+  });
+});
+async function genDocs(){
+  var btn=document.getElementById('GDB');btn.disabled=true;btn.innerHTML='<div class="spin"></div> AI writing...';
+  document.getElementById('DC').innerHTML='<div style="text-align:center;padding:4rem;color:#6e6e88"><div class="spin spin-lg" style="margin:0 auto 1rem;display:block"></div><div style="font-size:0.875rem;font-weight:600;color:#f0f0f8;margin-bottom:0.35rem">Writing documentation</div><div style="font-size:0.8rem">Analyzing all '+layers.length+' layers...</div></div>';
+  try{
+    var r=await _hit('/api/medallion/'+archId+'/generate-docs',{method:'POST'});
+    docs=r.docs;render(r.docs,new Date().toISOString());_toast('Documentation generated!','ok');
+  }catch(e){document.getElementById('DC').innerHTML='<div style="padding:2rem;color:#ef4444">Failed: '+_x(e.message)+'</div>';_toast('Failed','err');}
+  btn.disabled=false;btn.textContent='🧠 Regenerate docs';
+}
+function sec(title,id,body){return '<div style="background:#16161f;border:1px solid rgba(255,255,255,0.07);border-radius:10px;margin-bottom:1rem;overflow:hidden"><div style="padding:0.875rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none" onclick="tog(''+id+'')"><div style="font-size:0.85rem;font-weight:700;color:#f0f0f8">'+title+'</div><span id="'+id+'-ic">▾</span></div><div id="'+id+'" style="padding:1.25rem;font-size:0.84rem;color:#b8b8cc;line-height:1.8">'+body+'</div></div>';}
+function escP(s){return (s||'').split('\n\n').map(function(p){return '<p style=\"margin-bottom:0.875rem\">'+_x(p)+'</p>';}).join('');}
+function render(d,ga){
+  var gd=new Date(ga).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('DC').innerHTML=
+    '<div style="background:linear-gradient(135deg,#16161f,#1e1e2a);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:2rem;margin-bottom:1.5rem"><div style="font-size:1.4rem;font-weight:800;letter-spacing:-0.4px;margin-bottom:0.4rem">📋 '+_x(arch&&arch.name||'Architecture')+' Documentation</div><div style="font-size:0.8rem;color:#b8b8cc;margin-bottom:0.75rem">'+_x((arch&&arch.domain)||'')+' · '+layers.length+' layers · '+(arch&&arch.governanceLevel||'')+'</div><div style="font-size:0.75rem;color:#6e6e88;display:flex;gap:1.5rem;flex-wrap:wrap"><span>📅 '+gd+'</span><span>🤖 AI-generated</span></div></div>'+
+    sec('📊 Executive Summary','exec',escP(d.executive_summary))+
+    sec('🏛️ Architecture Overview','arch-ov',escP(d.architecture_overview))+
+    '<div style="background:#16161f;border:1px solid rgba(255,255,255,0.07);border-radius:10px;margin-bottom:1rem;overflow:hidden"><div style="padding:0.875rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="tog('lin')"><div style="font-size:0.85rem;font-weight:700;color:#f0f0f8">🔀 Data Lineage</div><span id="lin-ic">▾</span></div><div id="lin"><div style="overflow-x:auto;padding:1.5rem"><div style="display:flex;align-items:center;gap:0;min-width:max-content"><div style="flex-shrink:0"><div style="padding:0.875rem 1.25rem;border-radius:10px;border:2px solid rgba(255,255,255,0.12);background:#1e1e2a;text-align:center;min-width:120px"><div style="font-size:0.82rem;font-weight:800;color:#6e6e88">📂 Source</div><div style="font-size:0.68rem;color:#3a3a50;margin-top:0.25rem">'+_x((arch&&arch.sourceName)||'Raw data')+'</div></div></div>'+layers.map(function(l){return '<div style="display:flex;flex-direction:column;align-items:center;padding:0 0.625rem;flex-shrink:0;margin-bottom:0.875rem"><div style="width:36px;height:2px;background:rgba(255,255,255,0.1)"></div><div style="color:#3a3a50;font-size:0.75rem">→</div><div style="font-size:0.6rem;color:#3a3a50;text-align:center;max-width:70px">'+_x(l.selectedTool||'')+'</div></div><div style="flex-shrink:0"><div style="padding:0.875rem 1.25rem;border-radius:10px;border:2px solid '+(l.color||'#94a3b8')+';background:'+(l.color||'#94a3b8')+'18;text-align:center;min-width:120px"><div style="font-size:0.82rem;font-weight:800;color:'+(l.color||'#94a3b8')+'">'+_x(l.name)+'</div><div style="font-size:0.68rem;color:'+(l.color||'#94a3b8')+'cc;margin-top:0.25rem">'+_x((l.purpose||'').slice(0,50))+'</div></div><div style="font-size:0.6rem;margin-top:0.2rem;text-align:center;color:'+(l.approvalStatus==='approved'?'#10b981':'#3a3a50')+'">'+(l.approvalStatus==='approved'?'✓ Approved':l.status||'draft')+'</div></div>';}).join('')+'</div></div><div style="padding:1.25rem;border-top:1px solid rgba(255,255,255,0.07);font-size:0.84rem;color:#b8b8cc;line-height:1.8">'+escP(d.data_lineage)+'</div></div></div>'+
+    '<div style="background:#16161f;border:1px solid rgba(255,255,255,0.07);border-radius:10px;margin-bottom:1rem;overflow:hidden"><div style="padding:0.875rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="tog('ld')"><div style="font-size:0.85rem;font-weight:700;color:#f0f0f8">🔧 Layer Details</div><span id="ld-ic">▾</span></div><div id="ld" style="padding:1.25rem">'+
+    (d.layers||[]).map(function(l,i){var la=layers.find(function(al){return al.name.toLowerCase()===l.name.toLowerCase();})||layers[i]||{};return '<div style="border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:1.1rem;margin-bottom:0.75rem;border-left:3px solid '+(la.color||'#94a3b8')+'"><div style="font-size:0.9rem;font-weight:800;color:'+(la.color||'#94a3b8')+';margin-bottom:0.35rem">'+_x(l.name)+'</div><div style="font-size:0.8rem;color:#b8b8cc;margin-bottom:0.75rem">'+_x(l.overview||'')+'</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem"><div><div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6e6e88;margin-bottom:0.25rem">Transformation rules</div><div style="font-size:0.78rem;color:#b8b8cc">'+_x(l.transformation_rules||'')+'</div></div><div><div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#6e6e88;margin-bottom:0.25rem">Business value</div><div style="font-size:0.78rem;color:#b8b8cc">'+_x(l.business_value||'')+'</div></div></div></div>';}).join('')+
+    '</div></div>'+
+    sec('🔐 Governance','gov-d',escP(d.governance))+
+    '<div style="background:#16161f;border:1px solid rgba(255,255,255,0.07);border-radius:10px;margin-bottom:1rem;overflow:hidden"><div style="padding:0.875rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="tog('rb')"><div style="font-size:0.85rem;font-weight:700;color:#f0f0f8">📖 Operations Runbook</div><span id="rb-ic">▾</span></div><div id="rb" style="padding:1.25rem;font-size:0.84rem;color:#b8b8cc;line-height:1.8">'+(d.runbook?'<p style="margin-bottom:0.875rem"><strong style="color:#f0f0f8">Daily operations:</strong> '+_x(d.runbook.daily_operations||'')+'</p><p style="margin-bottom:0.875rem"><strong style="color:#f0f0f8">Incident response:</strong> '+_x(d.runbook.incident_response||'')+'</p>'+(d.runbook.common_issues||[]).map(function(i){return '<div style="padding:0.625rem 0.875rem;background:#1e1e2a;border-radius:6px;border-left:3px solid #f59e0b;margin-bottom:0.5rem">'+_x(i)+'</div>';}).join(''):'No runbook generated.')+'</div></div>'+
+    '<div style="background:#16161f;border:1px solid rgba(255,255,255,0.07);border-radius:10px;margin-bottom:1rem;overflow:hidden"><div style="padding:0.875rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="tog('gl')"><div style="font-size:0.85rem;font-weight:700;color:#f0f0f8">📚 Glossary</div><span id="gl-ic">▾</span></div><div id="gl" style="padding:0.75rem 1.25rem">'+
+    (d.glossary||[]).map(function(g){return '<div style="display:flex;gap:1rem;padding:0.625rem 0;border-bottom:1px solid rgba(255,255,255,0.07)"><div style="font-weight:700;font-size:0.8rem;min-width:140px;color:#a5b4fc">'+_x(g.term)+'</div><div style="font-size:0.8rem;color:#b8b8cc">'+_x(g.definition)+'</div></div>';}).join('')+'</div></div>';
+}
+function tog(id){var el=document.getElementById(id),ic=document.getElementById(id+'-ic');if(!el)return;var h=el.style.display==='none';el.style.display=h?'':'none';if(ic)ic.textContent=h?'▾':'▸';}
+function expMd(){
+  if(!docs){_toast('Generate docs first','warn');return;}
+  var d=docs,md='# '+(arch&&arch.name||'Architecture')+' Documentation\n\nGenerated by Pipebase\n\n';
+  md+='## Executive Summary\n\n'+(d.executive_summary||'')+'\n\n';
+  md+='## Architecture Overview\n\n'+(d.architecture_overview||'')+'\n\n';
+  md+='## Layers\n\n';(d.layers||[]).forEach(function(l){md+='### '+l.name+'\n\n'+(l.overview||'')+'\n\n';});
+  md+='## Governance\n\n'+(d.governance||'')+'\n\n';
+  if(d.runbook){md+='## Runbook\n\n'+(d.runbook.daily_operations||'')+'\n\n';}
+  md+='## Glossary\n\n';(d.glossary||[]).forEach(function(g){md+='**'+g.term+':** '+g.definition+'\n\n';});
+  var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([md],{type:'text/markdown'}));
+  a.download=((arch&&arch.name)||'architecture').replace(/\s+/g,'_')+'_docs.md';a.click();_toast('Exported','ok');
+}
+
+</script>
+</body>
+</html>
